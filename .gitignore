@@ -1,0 +1,37 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+.pnpm-store/
+
+# Runtime data
+storage/
+backend/storage/
+*.log
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local CA certificates
+backend/certs/*.crt
+frontend/certs/*.crt

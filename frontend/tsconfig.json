@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  // Duplicated here so tooling that only reads the root tsconfig (shadcn CLI, eslint resolver) sees the aliases.
+  "compilerOptions": {
+    "paths": {
+      "@app/*": ["./src/app/*"],
+      "@features/*": ["./src/features/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@styles/*": ["./src/styles/*"]
+    }
+  }
+}

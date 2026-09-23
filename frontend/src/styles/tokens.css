@@ -1,0 +1,52 @@
+/*
+ * EgSA design tokens (design.md §3–5, §43).
+ * The shadcn/ui variable names are mapped onto the EgSA palette so generated
+ * components pick up the brand automatically. The UI is light-only by design.
+ */
+:root {
+  /* Brand */
+  --egsa-navy: #0b1f5b;
+  --egsa-navy-deep: #102a72;
+  --egsa-blue: #1769e0;
+  --egsa-blue-light: #eaf3ff;
+
+  /* Surfaces */
+  --egsa-bg: #f7f9fc;
+  --egsa-surface: #ffffff;
+  --egsa-surface-muted: #f3f6fa;
+  --egsa-border: #e5eaf1;
+  --egsa-input-border: #dce3ec;
+
+  /* Text */
+  --egsa-text: #1f2a44;
+  --egsa-text-muted: #5b6b85;
+
+  /* Semantic */
+  --egsa-success: #16a36a;
+  --egsa-warning: #e6a23c;
+  --egsa-danger: #e5484d;
+  --egsa-ai: #7657e8;
+
+  /* shadcn/ui contract */
+  --background: var(--egsa-bg);
+  --foreground: var(--egsa-text);
+  --card: var(--egsa-surface);
+  --card-foreground: var(--egsa-text);
+  --popover: var(--egsa-surface);
+  --popover-foreground: var(--egsa-text);
+  --primary: var(--egsa-blue);
+  --primary-foreground: #ffffff;
+  --secondary: var(--egsa-surface-muted);
+  --secondary-foreground: var(--egsa-navy);
+  --muted: var(--egsa-surface-muted);
+  --muted-foreground: var(--egsa-text-muted);
+  --accent: var(--egsa-blue-light);
+  --accent-foreground: var(--egsa-blue);
+  --destructive: var(--egsa-danger);
+  --border: var(--egsa-border);
+  --input: var(--egsa-input-border);
+  --ring: var(--egsa-blue);
+
+  /* Radius: sm 8 · md 10 · lg 12 · xl 16 (design.md §37) */
+  --radius: 0.75rem;
+}

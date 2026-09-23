@@ -1,0 +1,58 @@
+# Quality gate (no CI in the POC, decision D8).
+# Setup once:  uv tool install pre-commit && pre-commit install
+# Run all:     pre-commit run --all-files
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: check-yaml
+      - id: check-json
+        exclude: ^frontend/tsconfig.*\.json$ # JSONC (comments allowed)
+
+  - repo: local
+    hooks:
+      # Secrets: the OpenRouter key must never be committed (decision D1 / security rules).
+      - id: no-openrouter-key
+        name: no OpenRouter API key in the repo
+        language: pygrep
+        entry: 'sk-or-(v1-)?[A-Za-z0-9]{20,}'
+      - id: no-env-file
+        name: .env must not be committed
+        language: fail
+        entry: '.env files hold secrets; commit .env.example instead'
+        files: '(^|/)\.env$'
+
+      # Backend
+      - id: ruff-check
+        name: ruff check (backend)
+        language: system
+        entry: uv run --project backend ruff check --config backend/pyproject.toml
+        types: [python]
+        files: ^backend/
+      - id: ruff-format
+        name: ruff format (backend)
+        language: system
+        entry: uv run --project backend ruff format --config backend/pyproject.toml
+        types: [python]
+        files: ^backend/
+
+      # Frontend
+      - id: prettier
+        name: prettier (frontend)
+        language: system
+        entry: pnpm --dir frontend format:check
+        files: ^frontend/
+        pass_filenames: false
+      - id: eslint
+        name: eslint (frontend)
+        language: system
+        entry: pnpm --dir frontend lint
+        files: ^frontend/.*\.(ts|tsx|js)$
+        pass_filenames: false

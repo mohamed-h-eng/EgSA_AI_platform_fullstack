@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './tokens.css';
+
+@theme inline {
+  /* Fonts are self-hosted via @fontsource (no CDN, decision D1). */
+  --font-sans: 'Inter Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+
+  /* shadcn/ui semantic colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* EgSA brand + semantic colors */
+  --color-navy: var(--egsa-navy);
+  --color-navy-deep: var(--egsa-navy-deep);
+  --color-primary-light: var(--egsa-blue-light);
+  --color-surface: var(--egsa-surface);
+  --color-surface-muted: var(--egsa-surface-muted);
+  --color-success: var(--egsa-success);
+  --color-warning: var(--egsa-warning);
+  --color-danger: var(--egsa-danger);
+  --color-ai: var(--egsa-ai);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-card: 0 2px 10px rgb(11 31 91 / 0.05);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-navy;
+  }
+}
