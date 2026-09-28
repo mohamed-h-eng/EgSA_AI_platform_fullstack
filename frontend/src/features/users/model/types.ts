@@ -30,6 +30,8 @@ export interface UserFilters {
   role: string
   status: UserStatus | ''
   page: number
+  /** Rows per page; defaults to USERS_PAGE_SIZE. */
+  pageSize?: number
 }
 
 export interface CreatedUser {

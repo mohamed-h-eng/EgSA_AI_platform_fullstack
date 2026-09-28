@@ -66,6 +66,7 @@ Items marked **(plan)** come from `plan.md`. Items marked **(default)** fill gap
 | D15 | Session       | **15 min access / 8 h refresh.** |
 | D17 | AI connection | **Entered manually by an admin in Admin Settings → AI model** (not `.env`): base URL, API key, allowed/default models, prompt, limits. The key is **encrypted at rest** (Fernet; `APP_ENCRYPTION_KEY` or derived from `JWT_SECRET`), **write-only** via the API (only "set, …last 4" is shown), never logged or audited, and only used by the backend. Changes plan §19. |
 | D16 | Deletion      | **Soft-delete conversations and projects** (`deleted_at`, hidden everywhere, admin can recover through the DB). **Documents are hard-deleted** along with their file. The audit log keeps every deletion. |
+| D18 | Navigation    | **One Claude-style sidebar** (2026-09-28, workflow 11): New chat, Search, main pages, a small Administration group, then Recents (grouped by date), account menu at the bottom. No desktop top header, no sidebar tagline, no per-page second sidebar (chat history lives in the app sidebar). |
 
 ### Still open (non-blocking)
 - Default free OpenRouter model: pick it just before the demo (the free lineup changes).

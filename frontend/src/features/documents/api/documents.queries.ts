@@ -13,11 +13,12 @@ export const documentsKeys = {
   uploadConfig: () => ['document-upload-config'] as const,
 }
 
-export function useDocuments(filters: DocumentFilters) {
+export function useDocuments(filters: DocumentFilters, enabled = true) {
   return useQuery({
     queryKey: documentsKeys.list(filters),
     queryFn: () => api.listDocuments(filters),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

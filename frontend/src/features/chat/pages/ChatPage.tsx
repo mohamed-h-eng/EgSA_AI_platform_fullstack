@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { Can, useAuth } from '@features/auth'
+import { Can } from '@features/auth'
 import { ApiError } from '@shared/api/http'
 import { FormError } from '@shared/ui/form-message'
 import { Skeleton } from '@shared/ui/skeleton'
@@ -16,14 +16,14 @@ import {
 import { ChatComposer } from '../components/ChatComposer'
 import { ChatDataWarning } from '../components/ChatDataWarning'
 import { ChatEmptyState } from '../components/ChatEmptyState'
-import { ConversationSidebar } from '../components/ConversationSidebar'
+import { ChatTitleMenu } from '../components/ChatTitleMenu'
 import { MessageItem } from '../components/MessageItem'
+import { shortModelName } from '../model/format'
 import { ModelPicker } from '../components/ModelPicker'
 
 export function ChatPage() {
   const { conversationId = null } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
   const { data: models } = useChatModels()
   const [model, setModel] = useState<string | null>(null)
   const [newChatProject, setNewChatProject] = useState<string | null>(null)
@@ -34,7 +34,8 @@ export function ChatPage() {
   const stream = useChatStream(conversationId)
 
   const notConfigured = models !== undefined && !models.configured
-  const lastMessage = messages.data?.at(-1)
+  const modelLabel = (id: string) =>
+    models?.models.find((m) => m.id === id)?.name ?? shortModelName(id)
 
   const send = async (content: string) => {
     if (conversationId) {
@@ -61,14 +62,16 @@ export function ChatPage() {
         height: 'calc(100% + 2 * var(--page-pad-y))',
       }}
     >
-      <ConversationSidebar activeId={conversationId} />
-
       <section className="flex min-w-0 flex-1 flex-col bg-background" aria-label="Chat">
-        <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-surface px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-surface px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <h2 dir="auto" className="truncate text-base font-semibold">
-              {conversationId ? (conversation.data?.title ?? '…') : 'New conversation'}
-            </h2>
+            {conversation.data ? (
+              <ChatTitleMenu key={conversation.data.id} conversation={conversation.data} />
+            ) : (
+              <h2 className="truncate px-2 text-base font-semibold">
+                {conversationId ? '…' : 'New conversation'}
+              </h2>
+            )}
             {conversation.data?.project && (
               <Link
                 to={`/projects/${conversation.data.project.id}`}
@@ -87,10 +90,10 @@ export function ChatPage() {
           <MessageList
             loading={messages.isPending}
             messages={messages.data ?? []}
-            userName={user?.full_name ?? 'You'}
-            lastMessageId={lastMessage?.id}
             onRetry={() => void stream.retry(model)}
-            retrying={stream.busy}
+            onEdit={(messageId, content) => void stream.edit(messageId, content, model)}
+            busy={stream.busy}
+            modelLabel={modelLabel}
           />
         ) : (
           <ChatEmptyState
@@ -127,7 +130,11 @@ export function ChatPage() {
             busy={stream.busy || create.isPending}
             streaming={stream.phase === 'streaming'}
             disabled={notConfigured || (conversationId !== null && conversation.isError)}
-            disabledReason="The AI model isn't configured yet."
+            disabledReason={
+              notConfigured
+                ? "The AI model isn't configured yet."
+                : 'This conversation is unavailable.'
+            }
           />
         </footer>
       </section>
@@ -156,20 +163,17 @@ function NotFound({ error }: { error: unknown }) {
 interface MessageListProps {
   loading: boolean
   messages: ReturnType<typeof useMessages>['data'] & object
-  userName: string
-  lastMessageId: string | undefined
   onRetry: () => void
-  retrying: boolean
+  onEdit: (messageId: string, content: string) => void
+  busy: boolean
+  modelLabel: (id: string) => string
 }
 
-function MessageList({
-  loading,
-  messages,
-  userName,
-  lastMessageId,
-  onRetry,
-  retrying,
-}: MessageListProps) {
+function MessageList({ loading, messages, onRetry, onEdit, busy, modelLabel }: MessageListProps) {
+  // Only the newest answer can be retried and only your newest message edited (no branches).
+  const last = messages.at(-1)
+  const lastAssistantId = last?.role === 'assistant' ? last.id : undefined
+  const lastUserId = messages.findLast((m) => m.role === 'user')?.id
   const scrollRef = useRef<HTMLDivElement>(null)
   const pinned = useRef(true)
   const lastContent = messages.at(-1)?.content.length ?? 0
@@ -207,10 +211,12 @@ function MessageList({
             <MessageItem
               key={m.id}
               message={m}
-              userName={userName}
-              canRetry={m.id === lastMessageId}
+              canRetry={m.id === lastAssistantId}
               onRetry={onRetry}
-              retrying={retrying}
+              canEdit={m.id === lastUserId}
+              onEdit={(content) => onEdit(m.id, content)}
+              busy={busy}
+              modelLabel={modelLabel}
             />
           ))
         )}

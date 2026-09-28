@@ -13,7 +13,8 @@ export function DocumentsPage() {
   const q = params.get('q') ?? ''
 
   return (
-    <>
+    // Full-page table (fit rows); phones and short windows scroll normally.
+    <div className="flex h-full min-h-0 flex-col">
       <PageHeader
         title="Engineering Library"
         subtitle="Access engineering documents, standards, and knowledge across EgSA's space projects."
@@ -21,9 +22,10 @@ export function DocumentsPage() {
       <DocumentLibrary
         key={q}
         initialSearch={q}
+        fillPage
         selectedId={documentId}
         onSelectedIdChange={(id) => navigate(id ? `/documents/${id}` : '/documents')}
       />
-    </>
+    </div>
   )
 }

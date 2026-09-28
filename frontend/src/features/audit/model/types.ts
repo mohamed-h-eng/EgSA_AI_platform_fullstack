@@ -18,6 +18,8 @@ export interface AuditFilters {
   from: string
   to: string
   page: number
+  /** Rows per page; defaults to AUDIT_PAGE_SIZE. */
+  pageSize?: number
 }
 
 /** "document.upload" → "Document · upload" */

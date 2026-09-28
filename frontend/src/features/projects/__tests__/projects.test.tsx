@@ -205,6 +205,7 @@ describe('projects', () => {
       <QueryClientProvider client={client}>
         <SlotsProvider
           slots={{
+            sidebarSections: [],
             projectTabs: [
               {
                 id: 'documents',

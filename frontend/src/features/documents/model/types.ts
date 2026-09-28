@@ -39,6 +39,8 @@ export interface DocumentFilters {
   type: FileType | ''
   status: DocumentStatus | ''
   page: number
+  /** Rows per page; defaults to DOCUMENTS_PAGE_SIZE. */
+  pageSize?: number
 }
 
 export const STATUS_META: Record<DocumentStatus, { label: string; tone: StatusTone }> = {

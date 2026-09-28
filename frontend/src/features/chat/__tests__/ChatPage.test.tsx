@@ -235,7 +235,7 @@ describe('Chat page', () => {
     await userEvent.click(await screen.findByRole('button', { name: /retry/i }))
     expect(retried).toEqual({ model: null })
     expect(await screen.findByText('SAR is radar.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('disables the composer when AI is not configured and links admins to settings', async () => {
@@ -248,7 +248,6 @@ describe('Chat page', () => {
 
     expect(await screen.findByText(/hasn't been set up yet/)).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Message' })).toBeDisabled()
-    expect(screen.getByText('No conversations yet.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('link', { name: /Admin Settings/ }))
     expect(await screen.findByText('settings page')).toBeInTheDocument()
   })
@@ -295,5 +294,67 @@ describe('Chat page', () => {
     stream.push('delta', { text: 'Hi there' })
     expect(await screen.findByText('Hi there')).toBeInTheDocument()
     stream.close()
+  })
+
+  it('user messages sit on the right with Copy, and only the latest can be edited', async () => {
+    let edited: unknown
+    const history = [
+      message({ id: 'u1', position: 0, content: 'First question' }),
+      message({
+        id: 'a1',
+        position: 1,
+        role: 'assistant',
+        content: 'First answer',
+        model: 'llama:free',
+        latency_ms: 2400,
+      }),
+      message({ id: 'u2', position: 2, content: 'Typo questoin' }),
+      message({
+        id: 'a2',
+        position: 3,
+        role: 'assistant',
+        content: 'Second answer',
+        model: 'x/unknown-model:free',
+        latency_ms: 850,
+      }),
+    ]
+    mockApi({
+      'GET /ai/models': () => json(200, MODELS),
+      'GET /conversations': () => json(200, listPage([conversation()])),
+      'GET /conversations/c1': () => json(200, conversation()),
+      'GET /conversations/c1/messages': () => json(200, history),
+      'PUT /conversations/c1/messages/u2': (init) => {
+        edited = JSON.parse(String(init?.body))
+        return json(200, {
+          conversation: conversation(),
+          user_message: { ...history[2], content: 'Fixed question' },
+          assistant_message: { ...history[3], content: 'Better answer' },
+        })
+      },
+    })
+    renderAt('/chat/c1')
+
+    const mine = await screen.findAllByRole('article', { name: 'Your message' })
+    expect(mine[0]).toHaveClass('items-end')
+    expect(within(mine[0]).getByRole('button', { name: 'Copy' })).toBeInTheDocument()
+    expect(within(mine[0]).queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+
+    // AI actions: copy, retry only on the newest answer, response time, and the model's name.
+    const answers = screen.getAllByRole('article', { name: 'AI response' })
+    expect(within(answers[0]).queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+    expect(within(answers[0]).getByText('Model: Llama Free')).toBeInTheDocument()
+    expect(within(answers[0]).getByText('2.4s')).toBeInTheDocument()
+    expect(within(answers[1]).getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+    expect(within(answers[1]).getByText('Model: unknown-model')).toBeInTheDocument()
+    expect(within(answers[1]).getByText('0.9s')).toBeInTheDocument()
+
+    await userEvent.click(within(mine[1]).getByRole('button', { name: 'Edit' }))
+    const box = screen.getByRole('textbox', { name: 'Edit your message' })
+    await userEvent.clear(box)
+    await userEvent.type(box, 'Fixed question')
+    await userEvent.click(screen.getByRole('button', { name: /Save & resend/ }))
+    await waitFor(() => expect(edited).toEqual({ content: 'Fixed question', model: null }))
+    expect(await screen.findByText('Better answer')).toBeInTheDocument()
+    expect(screen.getByText('Fixed question')).toBeInTheDocument()
   })
 })

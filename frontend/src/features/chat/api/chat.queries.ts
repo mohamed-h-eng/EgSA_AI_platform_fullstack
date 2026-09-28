@@ -17,6 +17,8 @@ import * as api from './chat.api'
 export const chatKeys = {
   all: ['chat'] as const,
   conversations: (q: string) => [...chatKeys.all, 'conversations', q] as const,
+  conversationsPage: (q: string, page: number) =>
+    [...chatKeys.all, 'conversations', q, page] as const,
   conversation: (id: string) => [...chatKeys.all, 'conversation', id] as const,
   messages: (id: string) => [...chatKeys.all, 'messages', id] as const,
   models: () => ['ai-models'] as const,
@@ -28,6 +30,16 @@ export function useConversations(q: string) {
     queryFn: () => api.listConversations({ q, projectId: null, page: 1 }),
     placeholderData: keepPreviousData,
     select: (page) => page.items,
+  })
+}
+
+/** Paged list for the Chats page (the sidebar uses the first page via useConversations). */
+export function useConversationsPage(q: string, page: number, pageSize?: number, enabled = true) {
+  return useQuery({
+    queryKey: [...chatKeys.conversationsPage(q, page), pageSize ?? 'default'],
+    queryFn: () => api.listConversations({ q, projectId: null, page, pageSize }),
+    placeholderData: keepPreviousData,
+    enabled,
   })
 }
 
@@ -231,6 +243,25 @@ export function useChatStream(conversationId: string | null) {
     [applyResult, conversationId],
   )
 
+  const edit = useCallback(
+    async (messageId: string, content: string, model: string | null) => {
+      if (!conversationId) return
+      setError(null)
+      setPhase('sending')
+      try {
+        applyResult(
+          conversationId,
+          await api.editMessage(conversationId, messageId, content, model),
+        )
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'The message could not be edited.')
+      } finally {
+        setPhase('idle')
+      }
+    },
+    [applyResult, conversationId],
+  )
+
   const stop = useCallback(() => abortRef.current?.abort(), [])
 
   return {
@@ -240,6 +271,7 @@ export function useChatStream(conversationId: string | null) {
     clearError: () => setError(null),
     send,
     retry,
+    edit,
     stop,
   }
 }

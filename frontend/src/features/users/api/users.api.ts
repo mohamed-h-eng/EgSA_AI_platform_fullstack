@@ -9,7 +9,7 @@ export const USERS_PAGE_SIZE = 20
 export function listUsers(filters: UserFilters): Promise<Page<ManagedUser>> {
   const params = new URLSearchParams({
     page: String(filters.page),
-    page_size: String(USERS_PAGE_SIZE),
+    page_size: String(filters.pageSize ?? USERS_PAGE_SIZE),
   })
   if (filters.q.trim()) params.set('q', filters.q.trim())
   if (filters.role) params.set('role', filters.role)

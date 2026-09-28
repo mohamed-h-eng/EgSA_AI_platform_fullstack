@@ -1,5 +1,7 @@
 # Phase 08: Chat UI (3–4 days)
 
+> **Superseded in part by phase 11 (D18):** `ConversationSidebar` was removed; chat history now lives in the app sidebar (`RecentChats`) and on the `/chats` page.
+
 **Goal:** A professional AI workspace UI (design §24–25) on top of phases 06 and 07. Plan §23, §25, and §42.
 
 ## Prerequisites

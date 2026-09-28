@@ -17,6 +17,8 @@ Phases 08 and 09 done. Read `rules/design-system.md` and `rules/ui-principles.md
 | Where do admin pages go? | A small **"Administration" group above Recents**, shown only to users with permission. |
 | Sidebar tagline ("Space for a Brighter Egypt / PEOPLE, KNOWLEDGE, IMPACT") | **Removed** from the sidebar. |
 | Recents list | **Grouped** Today / Yesterday / Previous 7 days / Older (reuse `groupByDate`). |
+| Follow-up (same day) | Order **Dashboard > Projects > Documents**; **no "Chats" nav item** (use "View all chats"); **no visible Search entry** (Ctrl+K kept); New chat = **plus icon in a filled circle**, focus ring on the circle only. |
+| Follow-up 2 | **Administration collapsed by default** (chevron toggle; auto-opens on admin pages; remembered in `localStorage`). The account menu is **as wide as the sidebar's account button** and aligned with it. |
 | Top header bar | **Removed** (Claude style; assumed, since this was the recommended option and not objected to). The product name moves to the sidebar brand block. Each page keeps its own `PageHeader`. |
 
 ## Target layout
@@ -25,13 +27,9 @@ Phases 08 and 09 done. Read `rules/design-system.md` and `rules/ui-principles.md
 ┌──────────────────────────────┐
 │ [EgSA] EgSA AI Engineering   «│  brand (name, 2 lines) + collapse toggle
 │        Platform              │
-│ ┌──────────────────────────┐ │
-│ │ ＋ New chat               │ │  primary button → /chat          (chat:use)
-│ └──────────────────────────┘ │
-│ 🔍 Search              Ctrl K│  opens the existing GlobalSearch dialog
-│ ▢ Dashboard                  │
-│ ▢ Chats                      │  /chats: all chats + search      (chat:use)
-│ ▢ Projects                   │
+│ (+) New chat                 │  plus in a filled circle → /chat (chat:use)
+│ ▢ Dashboard                  │  order: Dashboard > Projects > Documents
+│ ▢ Projects                   │  (no Chats item, no Search entry; Ctrl+K kept)
 │ ▢ Documents                  │
 │ ADMINISTRATION               │  small group, only if any item is permitted
 │ ▢ Users & Access             │

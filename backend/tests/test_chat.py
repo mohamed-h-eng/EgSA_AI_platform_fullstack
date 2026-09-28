@@ -356,8 +356,65 @@ def test_retry_with_nothing_to_retry(client, people, responder):
         client.post(f"{API}/conversations/{conv['id']}/retry", headers=h).json()["error"]["code"]
         == "NOTHING_TO_RETRY"
     )
-    send(client, h, conv["id"], "hi")
-    assert client.post(f"{API}/conversations/{conv['id']}/retry", headers=h).status_code == 409
+
+
+def test_retry_regenerates_a_completed_latest_answer(client, people, responder):
+    h = people["mohamed"]
+    conv = new_conversation(client, h)
+    first = send(client, h, conv["id"], "hi").json()["assistant_message"]
+    assert first["content"] == "answer #1"
+
+    res = client.post(f"{API}/conversations/{conv['id']}/retry", headers=h)
+    assert res.status_code == 200, res.text
+    again = res.json()["assistant_message"]
+    assert again["id"] == first["id"]  # replaced in place
+    assert again["content"] == "answer #2"
+    assert again["latency_ms"] is not None
+    history = client.get(f"{API}/conversations/{conv['id']}/messages", headers=h).json()
+    assert [m["content"] for m in history] == ["hi", "answer #2"]
+    # The AI saw the question, not its own previous answer.
+    turns, _ = responder.calls[-1]
+    assert [t.content for t in turns] == ["hi"]
+
+
+def test_edit_latest_message_replaces_the_reply(client, people, responder):
+    h = people["mohamed"]
+    conv = new_conversation(client, h)
+    send(client, h, conv["id"], "first question")
+    second = send(client, h, conv["id"], "typo questoin").json()
+
+    res = client.put(
+        f"{API}/conversations/{conv['id']}/messages/{second['user_message']['id']}",
+        headers=h,
+        json={"content": "fixed question"},
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["user_message"]["content"] == "fixed question"
+    assert body["assistant_message"]["id"] == second["assistant_message"]["id"]
+    history = client.get(f"{API}/conversations/{conv['id']}/messages", headers=h).json()
+    assert [m["content"] for m in history] == [
+        "first question",
+        "answer #1",
+        "fixed question",
+        "answer #3",
+    ]
+    turns, _ = responder.calls[-1]
+    assert [t.content for t in turns] == ["first question", "answer #1", "fixed question"]
+
+
+def test_only_the_latest_message_can_be_edited(client, people, responder):
+    h = people["mohamed"]
+    conv = new_conversation(client, h)
+    first = send(client, h, conv["id"], "one").json()
+    send(client, h, conv["id"], "two")
+    url = f"{API}/conversations/{conv['id']}/messages/{first['user_message']['id']}"
+    res = client.put(url, headers=h, json={"content": "changed"})
+    assert res.status_code == 409
+    assert res.json()["error"]["code"] == "ONLY_LATEST_MESSAGE_EDITABLE"
+    assert client.put(url, headers=h, json={"content": "   "}).status_code == 422
+    # Someone else's conversation is invisible.
+    assert client.put(url, headers=people["sara"], json={"content": "x"}).status_code == 404
 
 
 # ── Titles (D3) ───────────────────────────────────────────

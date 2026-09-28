@@ -12,11 +12,12 @@ export const usersKeys = {
   roles: () => ['roles'] as const,
 }
 
-export function useUsers(filters: UserFilters) {
+export function useUsers(filters: UserFilters, enabled = true) {
   return useQuery({
     queryKey: usersKeys.list(filters),
     queryFn: () => api.listUsers(filters),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

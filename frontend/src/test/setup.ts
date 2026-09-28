@@ -9,3 +9,6 @@ Element.prototype.hasPointerCapture ??= () => false
 Element.prototype.setPointerCapture ??= () => {}
 Element.prototype.releasePointerCapture ??= () => {}
 Element.prototype.scrollIntoView ??= () => {}
+// jsdom has no canvas: the EgSA logo simply draws nothing (instead of logging errors).
+HTMLCanvasElement.prototype.getContext = (() =>
+  null) as typeof HTMLCanvasElement.prototype.getContext

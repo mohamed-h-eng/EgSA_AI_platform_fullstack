@@ -39,6 +39,7 @@ export function UsersTable({ users, loading, selectedId, onSelect }: UsersTableP
           : users?.map((user) => (
               <TableRow
                 key={user.id}
+                data-fit-row
                 onClick={() => onSelect(user.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {

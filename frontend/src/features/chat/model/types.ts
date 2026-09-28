@@ -44,6 +44,8 @@ export interface ConversationFilters {
   q: string
   projectId: string | null
   page: number
+  /** Rows per page; defaults to CONVERSATIONS_PAGE_SIZE. */
+  pageSize?: number
 }
 
 export interface ChatModels {

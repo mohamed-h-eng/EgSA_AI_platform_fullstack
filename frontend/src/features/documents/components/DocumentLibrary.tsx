@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Can } from '@features/auth'
 import { ProjectSelect } from '@features/projects'
 import { useDebounce } from '@shared/hooks/useDebounce'
+import { useFitRows } from '@shared/hooks/useFitRows'
+import { cn } from '@shared/lib/utils'
 import { Button } from '@shared/ui/button'
 import { FormError } from '@shared/ui/form-message'
 import { Input } from '@shared/ui/input'
@@ -35,6 +37,8 @@ interface DocumentLibraryProps {
   onSelectedIdChange?: (id: string | null) => void
   /** Search text to start with (e.g. from the header search). */
   initialSearch?: string
+  /** Fill the rest of the page and fit rows per page to it (the Documents page). */
+  fillPage?: boolean
 }
 
 export function DocumentLibrary({
@@ -43,6 +47,7 @@ export function DocumentLibrary({
   selectedId: controlledId,
   onSelectedIdChange,
   initialSearch = '',
+  fillPage = false,
 }: DocumentLibraryProps) {
   const [search, setSearch] = useState(initialSearch)
   const [projectFilter, setProjectFilter] = useState<string | null>(null)
@@ -56,15 +61,24 @@ export function DocumentLibrary({
   const select = onSelectedIdChange ?? setLocalId
 
   const q = useDebounce(search)
+  const fitted = useFitRows({ fallback: DOCUMENTS_PAGE_SIZE, page, onPageChange: setPage })
+  // Embedded (project tab): natural height with the standard page size.
+  const { fit, ready, pageSize, attachBody } = fillPage
+    ? fitted
+    : { fit: false, ready: true, pageSize: DOCUMENTS_PAGE_SIZE, attachBody: undefined }
   const { data: categories = [] } = useCategories()
-  const { data, isPending, isError, error, isPlaceholderData } = useDocuments({
-    q,
-    projectId: projectId ?? projectFilter,
-    category: category === ALL ? '' : category,
-    type: type === ALL ? '' : type,
-    status: status === ALL ? '' : status,
-    page,
-  })
+  const { data, isPending, isError, error, isPlaceholderData } = useDocuments(
+    {
+      q,
+      projectId: projectId ?? projectFilter,
+      category: category === ALL ? '' : category,
+      type: type === ALL ? '' : type,
+      status: status === ALL ? '' : status,
+      page,
+      pageSize,
+    },
+    ready,
+  )
   const filtered = !!q || !!projectFilter || category !== ALL || type !== ALL || status !== ALL
 
   const onFilter =
@@ -75,7 +89,12 @@ export function DocumentLibrary({
     }
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
+    <div
+      className={cn(
+        'overflow-hidden rounded-lg border bg-card',
+        fit && 'flex min-h-0 flex-1 flex-col',
+      )}
+    >
       <div className="flex flex-wrap items-center gap-3 border-b p-4">
         <div className="relative min-w-56 flex-1">
           <Search
@@ -153,28 +172,30 @@ export function DocumentLibrary({
         )}
       </div>
 
-      {isError ? (
-        <div className="p-6">
-          <FormError message={error.message} />
-        </div>
-      ) : data && data.total === 0 ? (
-        <EmptyState filtered={filtered} />
-      ) : (
-        <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
-          <DocumentsTable
-            documents={data?.items}
-            loading={isPending}
-            selectedId={selectedId}
-            onSelect={select}
-            showProject={!projectId}
-          />
-        </div>
-      )}
+      <div ref={attachBody} className={fit ? 'min-h-0 flex-1 overflow-y-auto' : undefined}>
+        {isError ? (
+          <div className="p-6">
+            <FormError message={error.message} />
+          </div>
+        ) : data && data.total === 0 ? (
+          <EmptyState filtered={filtered} />
+        ) : (
+          <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+            <DocumentsTable
+              documents={data?.items}
+              loading={isPending}
+              selectedId={selectedId}
+              onSelect={select}
+              showProject={!projectId}
+            />
+          </div>
+        )}
+      </div>
 
       {data && data.total > 0 && (
         <PaginationBar
           page={data.page}
-          pageSize={DOCUMENTS_PAGE_SIZE}
+          pageSize={pageSize}
           total={data.total}
           onPageChange={setPage}
           noun="documents"

@@ -1,4 +1,6 @@
-import { createContext, type ReactNode, useContext } from 'react'
+import { type ComponentType, createContext, type ReactNode, useContext } from 'react'
+
+import type { PermissionCode } from '@shared/types/feature'
 
 /**
  * Extension slots: lets one feature contribute UI to another WITHOUT importing it
@@ -21,11 +23,22 @@ export interface ProjectTabSlot {
   render: (ctx: ProjectTabContext) => ReactNode
 }
 
-export interface Slots {
-  projectTabs: ProjectTabSlot[]
+/** A block in the app sidebar between the navigation and the account menu (e.g. recent chats).
+ *  Hidden while the sidebar is collapsed to its icon rail. */
+export interface SidebarSectionSlot {
+  id: string
+  order: number
+  permission?: PermissionCode
+  /** `onNavigate` closes the mobile drawer after a link is followed. */
+  Component: ComponentType<{ onNavigate?: () => void }>
 }
 
-export const SlotsContext = createContext<Slots>({ projectTabs: [] })
+export interface Slots {
+  projectTabs: ProjectTabSlot[]
+  sidebarSections: SidebarSectionSlot[]
+}
+
+export const SlotsContext = createContext<Slots>({ projectTabs: [], sidebarSections: [] })
 
 export function useSlot<K extends keyof Slots>(name: K): Slots[K] {
   return useContext(SlotsContext)[name]

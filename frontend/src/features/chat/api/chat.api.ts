@@ -14,7 +14,7 @@ export const CONVERSATIONS_PAGE_SIZE = 50
 export function listConversations(filters: ConversationFilters): Promise<Page<Conversation>> {
   const params = new URLSearchParams({
     page: String(filters.page),
-    page_size: String(CONVERSATIONS_PAGE_SIZE),
+    page_size: String(filters.pageSize ?? CONVERSATIONS_PAGE_SIZE),
   })
   if (filters.q.trim()) params.set('q', filters.q.trim())
   if (filters.projectId) params.set('project_id', filters.projectId)
@@ -73,6 +73,19 @@ export function sendMessage(
 ): Promise<SendResult> {
   return http(`/conversations/${conversationId}/messages`, {
     method: 'POST',
+    json: { content, model },
+  })
+}
+
+/** Edit your latest message; the reply after it is regenerated in place. */
+export function editMessage(
+  conversationId: string,
+  messageId: string,
+  content: string,
+  model: string | null,
+): Promise<SendResult> {
+  return http(`/conversations/${conversationId}/messages/${messageId}`, {
+    method: 'PUT',
     json: { content, model },
   })
 }

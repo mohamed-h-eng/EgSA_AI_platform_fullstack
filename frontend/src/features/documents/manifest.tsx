@@ -17,7 +17,7 @@ export const documentsFeature: FeatureManifest = {
       label: 'Documents',
       path: '/documents',
       icon: FileText,
-      order: 20,
+      order: 30,
       permission: 'documents:read',
     },
   ],

@@ -3,6 +3,8 @@ import { useState } from 'react'
 
 import { Can } from '@features/auth'
 import { useDebounce } from '@shared/hooks/useDebounce'
+import { useFitRows } from '@shared/hooks/useFitRows'
+import { cn } from '@shared/lib/utils'
 import { PageHeader } from '@shared/layout/PageHeader'
 import { Button } from '@shared/ui/button'
 import { Card } from '@shared/ui/card'
@@ -29,13 +31,22 @@ export function UsersPage() {
   const [creating, setCreating] = useState(false)
 
   const q = useDebounce(search)
-  const { data: roles = [] } = useRoles()
-  const { data, isPending, isError, error, isPlaceholderData } = useUsers({
-    q,
-    role: role === ALL ? '' : role,
-    status: status === ALL ? '' : status,
+  const { fit, ready, pageSize, attachBody } = useFitRows({
+    fallback: USERS_PAGE_SIZE,
     page,
+    onPageChange: setPage,
   })
+  const { data: roles = [] } = useRoles()
+  const { data, isPending, isError, error, isPlaceholderData } = useUsers(
+    {
+      q,
+      role: role === ALL ? '' : role,
+      status: status === ALL ? '' : status,
+      page,
+      pageSize,
+    },
+    ready,
+  )
 
   const filtered = !!q || role !== ALL || status !== ALL
   const resetPage =
@@ -46,7 +57,7 @@ export function UsersPage() {
     }
 
   return (
-    <>
+    <div className={fit ? 'flex h-full min-h-0 flex-col' : undefined}>
       <PageHeader
         title="Users & Access"
         subtitle="Manage platform accounts, roles and access."
@@ -60,7 +71,7 @@ export function UsersPage() {
         }
       />
 
-      <Card className="gap-0 overflow-hidden py-0">
+      <Card className={cn('gap-0 overflow-hidden py-0', fit && 'min-h-0 flex-1')}>
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
           <div className="relative min-w-60 flex-1">
             <Search
@@ -108,27 +119,29 @@ export function UsersPage() {
           </Select>
         </div>
 
-        {isError ? (
-          <div className="p-6">
-            <FormError message={error.message} />
-          </div>
-        ) : data && data.total === 0 ? (
-          <EmptyState filtered={filtered} />
-        ) : (
-          <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
-            <UsersTable
-              users={data?.items}
-              loading={isPending}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-            />
-          </div>
-        )}
+        <div ref={attachBody} className={fit ? 'min-h-0 flex-1 overflow-y-auto' : undefined}>
+          {isError ? (
+            <div className="p-6">
+              <FormError message={error.message} />
+            </div>
+          ) : data && data.total === 0 ? (
+            <EmptyState filtered={filtered} />
+          ) : (
+            <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+              <UsersTable
+                users={data?.items}
+                loading={isPending}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
+            </div>
+          )}
+        </div>
 
         {data && data.total > 0 && (
           <PaginationBar
             page={data.page}
-            pageSize={USERS_PAGE_SIZE}
+            pageSize={pageSize}
             total={data.total}
             onPageChange={setPage}
             noun="users"
@@ -138,7 +151,7 @@ export function UsersPage() {
 
       <UserDrawer userId={selectedId} onClose={() => setSelectedId(null)} />
       <CreateUserDialog open={creating} onOpenChange={setCreating} />
-    </>
+    </div>
   )
 }
 

@@ -1,28 +1,16 @@
 import { cn } from '@shared/lib/utils'
+import { EgsaLogo } from '@shared/ui/egsa-logo'
 
-/**
- * Sidebar brand block.
- * TODO(brand): replace the placeholder mark with the official EgSA logo file
- * (shared/assets/egsa-logo.svg) — never redraw or distort the real logo (design.md §6).
- */
+/** Sidebar brand block: the static EgSA logo + the product name (design-system.md). */
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
-    <div
-      className={cn(
-        'flex items-center gap-3 px-2',
-        compact && 'md:justify-center md:px-0 lg:justify-start lg:px-2',
+    <div className={cn('flex min-w-0 items-center gap-2', compact && 'justify-center')}>
+      <EgsaLogo variant="mark" label="" className={compact ? 'h-7' : 'h-8'} />
+      {compact ? (
+        <span className="sr-only">EgSA AI Platform</span>
+      ) : (
+        <p className="min-w-0 truncate text-sm font-semibold text-navy">EgSA AI Platform</p>
       )}
-    >
-      <div
-        aria-hidden
-        className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-navy text-sm font-bold text-white"
-      >
-        EgSA
-      </div>
-      <div className={cn('leading-tight', compact && 'md:hidden lg:block')}>
-        <p className="text-sm font-semibold text-navy">Egyptian Space</p>
-        <p className="text-sm font-semibold text-navy">Agency</p>
-      </div>
     </div>
   )
 }

@@ -50,6 +50,7 @@ It defines **what to build, in what order, and the rules to follow**. It is a pl
 │   ├── 09-dashboard-polish.md     ← dashboard, settings, audit, notifications
 │   ├── 10-testing.md
 │   ├── 11-sidebar-redesign.md     ← Claude-style unified sidebar (D18)
+│   ├── 12-agents-and-references.md ← user-made Agents (custom prompts, private/public) + @ references (D19)
 │   └── add-feature.md             ← repeatable recipe for scaling with new features
 │
 └── checklists/

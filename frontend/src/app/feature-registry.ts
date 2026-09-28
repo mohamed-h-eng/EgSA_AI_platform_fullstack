@@ -34,4 +34,7 @@ export const slots: Slots = {
   projectTabs: features
     .flatMap((f) => f.slots?.projectTabs ?? [])
     .sort((a, b) => a.order - b.order),
+  sidebarSections: features
+    .flatMap((f) => f.slots?.sidebarSections ?? [])
+    .sort((a, b) => a.order - b.order),
 }

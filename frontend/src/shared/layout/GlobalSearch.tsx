@@ -19,48 +19,40 @@ export interface SearchTarget {
 }
 
 /**
- * Header search (Ctrl+K / ⌘K). POC scope: hands the text to a list page's own search
- * (documents first) instead of a unified index. Targets come from the app, filtered by permission.
+ * Search dialog (Ctrl+K / ⌘K anywhere; opened from the sidebar's Search entry). POC scope: hands
+ * the text to a list page's own search (documents first) instead of a unified index. Targets come
+ * from the app, filtered by permission.
  */
-export function GlobalSearch({ targets }: { targets: SearchTarget[] }) {
-  const [open, setOpen] = useState(false)
-
+export function GlobalSearch({
+  targets,
+  open,
+  onOpenChange,
+}: {
+  targets: SearchTarget[]
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
   useEffect(() => {
     if (targets.length === 0) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
-        setOpen(true)
+        onOpenChange(true)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [targets.length])
+  }, [targets.length, onOpenChange])
 
   if (targets.length === 0) return null
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-keyshortcuts="Control+K"
-        className="flex h-9 items-center gap-2 rounded-md border bg-surface-muted px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-72"
-      >
-        <Search className="size-4" aria-hidden />
-        <span className="hidden sm:inline">Search documents, projects…</span>
-        <span className="sr-only sm:hidden">Search</span>
-        <kbd className="ms-auto hidden rounded border bg-surface px-1.5 font-mono text-[10px] sm:inline">
-          Ctrl K
-        </kbd>
-      </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
-          {/* Mounted only while open, so every search starts empty. */}
-          {open && <SearchForm targets={targets} onDone={() => setOpen(false)} />}
-        </DialogContent>
-      </Dialog>
-    </>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        {/* Mounted only while open, so every search starts empty. */}
+        {open && <SearchForm targets={targets} onDone={() => onOpenChange(false)} />}
+      </DialogContent>
+    </Dialog>
   )
 }
 

@@ -10,7 +10,10 @@ export function listDocuments(
   filters: DocumentFilters,
   pageSize = DOCUMENTS_PAGE_SIZE,
 ): Promise<Page<DocumentItem>> {
-  const params = new URLSearchParams({ page: String(filters.page), page_size: String(pageSize) })
+  const params = new URLSearchParams({
+    page: String(filters.page),
+    page_size: String(filters.pageSize ?? pageSize),
+  })
   if (filters.q.trim()) params.set('q', filters.q.trim())
   if (filters.projectId) params.set('project_id', filters.projectId)
   if (filters.category) params.set('category', filters.category)

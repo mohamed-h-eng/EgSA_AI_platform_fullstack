@@ -332,7 +332,8 @@ def retry_last(
     *,
     model: str | None = None,
 ) -> SendResult:
-    """Re-run the AI for the last user message when its reply failed (or never arrived)."""
+    """Re-run the AI for the last user message: after a failure, a missing reply, or to get a
+    new answer (the latest reply is replaced in place, same transcript position)."""
     conversation = get_conversation(db, user, conversation_id)
     resolved = _resolve_model(responder, model)
     last = conversation.messages[-1] if conversation.messages else None
@@ -340,15 +341,64 @@ def retry_last(
     if (
         last is not None
         and last.role == MessageRole.ASSISTANT
-        and last.status == MessageStatus.ERROR
+        and last.status != MessageStatus.STREAMING
     ):
-        assistant = last  # reuse the failed row: same position in the transcript
+        assistant = last
     elif last is not None and last.role == MessageRole.USER:
         assistant = Message(position=last.position + 1, role=MessageRole.ASSISTANT, content="")
         conversation.messages.append(assistant)
+    elif last is not None and last.role == MessageRole.ASSISTANT:
+        raise ConflictError("The answer is still being written.", code="REPLY_IN_PROGRESS")
     else:
-        raise ConflictError("There is no failed reply to retry.", code="NOTHING_TO_RETRY")
+        raise ConflictError("There is no reply to retry.", code="NOTHING_TO_RETRY")
+    return _regenerate(db, user, responder, conversation, assistant, resolved, user_message=None)
 
+
+def edit_last_message(
+    db: Session,
+    user: User,
+    responder: ChatResponder,
+    conversation_id: uuid.UUID,
+    message_id: uuid.UUID,
+    *,
+    content: str,
+    model: str | None = None,
+) -> SendResult:
+    """Edit the user's latest message and replace the reply that followed it. Only the latest
+    user message can be edited, so earlier history is never rewritten (no branches in the POC)."""
+    conversation = get_conversation(db, user, conversation_id)
+    resolved = _resolve_model(responder, model)
+    users = [m for m in conversation.messages if m.role == MessageRole.USER]
+    target = users[-1] if users else None
+    if target is None or target.id != message_id:
+        raise ConflictError(
+            "Only your latest message can be edited.", code="ONLY_LATEST_MESSAGE_EDITABLE"
+        )
+    after = [m for m in conversation.messages if m.position > target.position]
+    if any(m.status == MessageStatus.STREAMING for m in after):
+        raise ConflictError("The answer is still being written.", code="REPLY_IN_PROGRESS")
+
+    target.content = content
+    target.created_at = datetime.now(UTC)
+    assistant = next((m for m in after if m.role == MessageRole.ASSISTANT), None)
+    if assistant is None:
+        assistant = Message(position=target.position + 1, role=MessageRole.ASSISTANT, content="")
+        conversation.messages.append(assistant)
+    return _regenerate(db, user, responder, conversation, assistant, resolved, user_message=target)
+
+
+def _regenerate(
+    db: Session,
+    user: User,
+    responder: ChatResponder,
+    conversation: Conversation,
+    assistant: Message,
+    resolved: str | None,
+    *,
+    user_message: Message | None,
+) -> SendResult:
+    assistant.content = ""
+    assistant.error_code = None
     assistant.prompt_tokens = None
     assistant.completion_tokens = None
     turns = _history(conversation, responder.history_messages, before_position=assistant.position)
@@ -360,7 +410,7 @@ def retry_last(
     db.commit()
     return SendResult(
         conversation=to_out(conversation),
-        user_message=None,
+        user_message=message_out(user_message) if user_message else None,
         assistant_message=message_out(assistant),
     )
 

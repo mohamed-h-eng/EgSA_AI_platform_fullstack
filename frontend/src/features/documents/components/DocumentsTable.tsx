@@ -49,6 +49,7 @@ export function DocumentsTable({
           : documents?.map((doc) => (
               <TableRow
                 key={doc.id}
+                data-fit-row
                 tabIndex={0}
                 aria-selected={selectedId === doc.id}
                 onClick={() => onSelect(doc.id)}

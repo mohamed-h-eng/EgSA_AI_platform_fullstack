@@ -14,7 +14,7 @@ function dayBoundary(day: string, nextDay = false): string {
 export function listAuditLogs(filters: AuditFilters): Promise<Page<AuditEntry>> {
   const params = new URLSearchParams({
     page: String(filters.page),
-    page_size: String(AUDIT_PAGE_SIZE),
+    page_size: String(filters.pageSize ?? AUDIT_PAGE_SIZE),
   })
   if (filters.actor.trim()) params.set('actor', filters.actor.trim())
   if (filters.action) params.set('action', filters.action)

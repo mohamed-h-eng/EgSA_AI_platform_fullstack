@@ -2,6 +2,8 @@ import { ScrollText, Search } from 'lucide-react'
 import { Fragment, useState } from 'react'
 
 import { useDebounce } from '@shared/hooks/useDebounce'
+import { useFitRows } from '@shared/hooks/useFitRows'
+import { cn } from '@shared/lib/utils'
 import { formatDateTime } from '@shared/lib/format'
 import { PageHeader } from '@shared/layout/PageHeader'
 import { Button } from '@shared/ui/button'
@@ -29,15 +31,24 @@ export function AuditLogPage() {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   const debouncedActor = useDebounce(actor)
+  const { fit, ready, pageSize, attachBody } = useFitRows({
+    fallback: AUDIT_PAGE_SIZE,
+    page,
+    onPageChange: setPage,
+  })
   const { data: actions = [] } = useAuditActions()
   const areas = [...new Set(actions.map((a) => a.split('.')[0]))]
-  const { data, isPending, isError, error, isPlaceholderData } = useAuditLogs({
-    actor: debouncedActor,
-    action: action === ALL ? '' : action,
-    from,
-    to,
-    page,
-  })
+  const { data, isPending, isError, error, isPlaceholderData } = useAuditLogs(
+    {
+      actor: debouncedActor,
+      action: action === ALL ? '' : action,
+      from,
+      to,
+      page,
+      pageSize,
+    },
+    ready,
+  )
 
   const filtered = !!(actor || from || to) || action !== ALL
   const withReset =
@@ -48,10 +59,10 @@ export function AuditLogPage() {
     }
 
   return (
-    <>
+    <div className={fit ? 'flex h-full min-h-0 flex-col' : undefined}>
       <PageHeader title="Audit log" subtitle="Who did what, and when. Newest first." />
 
-      <Card className="gap-0 overflow-hidden py-0">
+      <Card className={cn('gap-0 overflow-hidden py-0', fit && 'min-h-0 flex-1')}>
         <div className="flex flex-wrap items-end gap-3 border-b p-4">
           <div className="relative min-w-56 flex-1">
             <Search
@@ -123,62 +134,64 @@ export function AuditLogPage() {
           )}
         </div>
 
-        {isError ? (
-          <div className="p-6">
-            <FormError message={error.message} />
-          </div>
-        ) : data && data.total === 0 ? (
-          <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
-            <ScrollText className="size-8 text-muted-foreground" aria-hidden />
-            <p className="font-medium text-navy">
-              {filtered ? 'No events match these filters.' : 'No events recorded yet.'}
-            </p>
-          </div>
-        ) : (
-          <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-surface-muted hover:bg-surface-muted">
-                  <TableHead className="pl-4">When</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead className="hidden md:table-cell">Target</TableHead>
-                  <TableHead className="hidden lg:table-cell">IP</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isPending
-                  ? Array.from({ length: 6 }, (_, i) => (
-                      <TableRow key={i}>
-                        <TableCell colSpan={5} className="pl-4">
-                          <Skeleton className="h-6 w-full" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  : data?.items.map((entry) => (
-                      <AuditRow
-                        key={entry.id}
-                        entry={entry}
-                        expanded={expanded === entry.id}
-                        onToggle={() => setExpanded(expanded === entry.id ? null : entry.id)}
-                      />
-                    ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        <div ref={attachBody} className={fit ? 'min-h-0 flex-1 overflow-y-auto' : undefined}>
+          {isError ? (
+            <div className="p-6">
+              <FormError message={error.message} />
+            </div>
+          ) : data && data.total === 0 ? (
+            <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
+              <ScrollText className="size-8 text-muted-foreground" aria-hidden />
+              <p className="font-medium text-navy">
+                {filtered ? 'No events match these filters.' : 'No events recorded yet.'}
+              </p>
+            </div>
+          ) : (
+            <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-surface-muted hover:bg-surface-muted">
+                    <TableHead className="pl-4">When</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead className="hidden md:table-cell">Target</TableHead>
+                    <TableHead className="hidden lg:table-cell">IP</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isPending
+                    ? Array.from({ length: 6 }, (_, i) => (
+                        <TableRow key={i}>
+                          <TableCell colSpan={5} className="pl-4">
+                            <Skeleton className="h-6 w-full" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : data?.items.map((entry) => (
+                        <AuditRow
+                          key={entry.id}
+                          entry={entry}
+                          expanded={expanded === entry.id}
+                          onToggle={() => setExpanded(expanded === entry.id ? null : entry.id)}
+                        />
+                      ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
 
         {data && data.total > 0 && (
           <PaginationBar
             page={data.page}
-            pageSize={AUDIT_PAGE_SIZE}
+            pageSize={pageSize}
             total={data.total}
             onPageChange={setPage}
             noun="events"
           />
         )}
       </Card>
-    </>
+    </div>
   )
 }
 
@@ -194,7 +207,7 @@ function AuditRow({
   const hasDetails = Object.keys(entry.meta).length > 0
   return (
     <>
-      <TableRow>
+      <TableRow data-fit-row>
         <TableCell className="pl-4 whitespace-nowrap text-muted-foreground">
           {formatDateTime(entry.created_at)}
         </TableCell>

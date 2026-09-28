@@ -8,11 +8,12 @@ export const auditKeys = {
   actions: () => ['audit', 'actions'] as const,
 }
 
-export function useAuditLogs(filters: AuditFilters) {
+export function useAuditLogs(filters: AuditFilters, enabled = true) {
   return useQuery({
     queryKey: auditKeys.list(filters),
     queryFn: () => api.listAuditLogs(filters),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

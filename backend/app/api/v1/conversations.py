@@ -124,3 +124,18 @@ def retry_last_reply(
     body: RetryRequest | None = None,
 ) -> SendResult:
     return chat.retry_last(db, user, responder, conversation_id, model=body.model if body else None)
+
+
+@router.put("/{conversation_id}/messages/{message_id}", response_model=SendResult)
+def edit_last_message(
+    conversation_id: uuid.UUID,
+    message_id: uuid.UUID,
+    body: MessageCreate,
+    user: ChatUser,
+    db: DbSession,
+    responder: Responder,
+) -> SendResult:
+    """Edit your latest message; its reply is regenerated in place."""
+    return chat.edit_last_message(
+        db, user, responder, conversation_id, message_id, content=body.content, model=body.model
+    )

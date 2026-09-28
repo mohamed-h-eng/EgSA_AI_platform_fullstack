@@ -19,7 +19,7 @@ export const settingsFeature: FeatureManifest = {
   ],
   nav: [
     {
-      label: 'Settings',
+      label: 'Admin Settings',
       path: '/admin/settings',
       icon: Settings,
       order: 95,

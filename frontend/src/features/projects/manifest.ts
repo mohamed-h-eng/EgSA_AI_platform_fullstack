@@ -23,7 +23,7 @@ export const projectsFeature: FeatureManifest = {
       label: 'Projects',
       path: '/projects',
       icon: FolderKanban,
-      order: 30,
+      order: 20,
       permission: 'projects:read',
     },
   ],
