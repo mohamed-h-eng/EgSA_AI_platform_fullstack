@@ -6,7 +6,7 @@ import { AuthenticatedShell } from './AuthenticatedShell'
 import { features } from './feature-registry'
 import { RequireAuth } from './guards/RequireAuth'
 import { RequirePermission } from './guards/RequirePermission'
-import { RouteError } from './RouteError'
+import { NotFoundPage, RouteError } from './RouteError'
 
 /** Wrap routes that declare `handle.permission` in a permission guard. */
 export function withPermissionGuard(route: RouteObject): RouteObject {
@@ -37,12 +37,14 @@ export const routes: RouteObject[] = [
     ),
     errorElement: <RouteError />,
     children: [
-      ...features.flatMap((f) => f.routes).map(withPermissionGuard),
       {
-        path: '*',
-        loader: () => {
-          throw new Response('', { status: 404 })
-        },
+        // Page errors and unknown URLs render INSIDE the shell (backlog B1). Unknown URLs are
+        // a plain element (no throwing loader), so RequireAuth still redirects signed-out users.
+        errorElement: <RouteError />,
+        children: [
+          ...features.flatMap((f) => f.routes).map(withPermissionGuard),
+          { path: '*', element: <NotFoundPage /> },
+        ],
       },
     ],
   },

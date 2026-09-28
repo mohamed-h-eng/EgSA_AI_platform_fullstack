@@ -1,3 +1,4 @@
+import { auditFeature } from '@features/audit'
 import { authFeature } from '@features/auth'
 import { chatFeature } from '@features/chat'
 import { dashboardFeature } from '@features/dashboard'
@@ -14,6 +15,7 @@ import type { FeatureManifest, NavItem } from '@shared/types/feature'
  * See .agent/workflows/add-feature.md.
  */
 export const features: FeatureManifest[] = [
+  auditFeature,
   authFeature,
   chatFeature,
   dashboardFeature,

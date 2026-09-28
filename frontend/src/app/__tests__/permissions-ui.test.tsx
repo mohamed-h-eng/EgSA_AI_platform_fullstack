@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
+import userEvent from '@testing-library/user-event'
+import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AuthenticatedShell } from '../AuthenticatedShell'
+import { NotFoundPage } from '../RouteError'
 import { withPermissionGuard } from '../router'
 
 let permissions: string[] = []
@@ -13,6 +15,11 @@ vi.mock('@features/auth', async (importOriginal) => ({
   usePermissionChecker: () => (code?: string) => !code || permissions.includes(code),
   UserMenu: () => null,
 }))
+
+function Location() {
+  const { pathname, search } = useLocation()
+  return <p>at {pathname + search}</p>
+}
 
 function renderAt(path: string) {
   const router = createMemoryRouter(
@@ -27,6 +34,9 @@ function renderAt(path: string) {
             handle: { permission: 'users:create' },
             element: <p>user admin</p>,
           }),
+          { path: 'documents', element: <Location /> },
+          { path: 'projects', element: <Location /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
@@ -66,5 +76,34 @@ describe('permission-aware UI', () => {
     permissions = ['users:create']
     renderAt('/admin/users')
     expect(screen.getByText('user admin')).toBeInTheDocument()
+  })
+
+  it('Ctrl+K opens the header search; Enter searches documents', async () => {
+    permissions = ['documents:read', 'projects:read']
+    renderAt('/')
+    await userEvent.keyboard('{Control>}k{/Control}')
+    await userEvent.type(
+      await screen.findByRole('searchbox', { name: 'Search text' }),
+      'EPS-SRS{Enter}',
+    )
+    expect(await screen.findByText('at /documents?q=EPS-SRS')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('header search can target projects, and only offers what the user may read', async () => {
+    permissions = ['projects:read']
+    renderAt('/')
+    await userEvent.click(screen.getByRole('button', { name: /search documents, projects/i }))
+    expect(screen.queryByRole('button', { name: 'Search documents' })).not.toBeInTheDocument()
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search text' }), 'NEXSAT')
+    await userEvent.click(screen.getByRole('button', { name: 'Search projects' }))
+    expect(await screen.findByText('at /projects?q=NEXSAT')).toBeInTheDocument()
+  })
+
+  it('shows "page not found" inside the shell for unknown URLs (backlog B1)', () => {
+    permissions = ['documents:read']
+    renderAt('/no/such/page')
+    expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+    expect(screen.getAllByRole('navigation', { name: 'Main navigation' }).length).toBeGreaterThan(0)
   })
 })

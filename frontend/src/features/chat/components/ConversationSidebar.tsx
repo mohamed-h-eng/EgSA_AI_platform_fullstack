@@ -27,7 +27,10 @@ export function ConversationSidebar({ activeId }: { activeId: string | null }) {
   const navigate = useNavigate()
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-e bg-surface" aria-label="Conversations">
+    <aside
+      className="hidden w-72 shrink-0 flex-col border-e bg-surface md:flex"
+      aria-label="Conversations"
+    >
       <div className="flex flex-col gap-3 border-b p-4">
         <Button onClick={() => navigate('/chat')} className="w-full">
           <MessageSquarePlus aria-hidden />

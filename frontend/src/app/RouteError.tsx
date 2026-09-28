@@ -4,8 +4,14 @@ import { Button } from '@shared/ui/button'
 
 export function RouteError() {
   const error = useRouteError()
-  const notFound = isRouteErrorResponse(error) && error.status === 404
+  return <ErrorMessage notFound={isRouteErrorResponse(error) && error.status === 404} />
+}
 
+export function NotFoundPage() {
+  return <ErrorMessage notFound />
+}
+
+function ErrorMessage({ notFound }: { notFound: boolean }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <h1 className="text-2xl font-bold">{notFound ? 'Page not found' : 'Something went wrong'}</h1>

@@ -7,45 +7,9 @@ from sqlalchemy import select
 from app.core.config import get_settings
 from app.models.audit import AuditLog
 from app.models.document import Document
-from tests.conftest import auth_header, login
 from tests.files import docx_bytes, pdf_bytes, txt_bytes, zip_without_word_bytes
 
 API = "/api/v1"
-
-
-@pytest.fixture
-def lib(client: TestClient, make_user):
-    """NEXSAT-1: Ahmed lead, Mohamed + Omar engineers, Sara viewer. SAR: Hussein lead."""
-    people = {
-        "admin": ("admin", "admin@egsa.local"),
-        "ahmed": ("project_lead", "ahmed@egsa.local"),
-        "mohamed": ("engineer", "mohamed@egsa.local"),
-        "omar": ("engineer", "omar@egsa.local"),
-        "sara": ("viewer", "sara@egsa.local"),
-        "hussein": ("project_lead", "hussein@egsa.local"),
-    }
-    users, headers = {}, {}
-    for key, (role, email) in people.items():
-        users[key] = make_user(email, role=role, full_name=key.title())
-        headers[key] = auth_header(login(client, email).json()["access_token"])
-
-    def project(code: str, members: dict[str, str]) -> str:
-        pid = client.post(
-            f"{API}/projects", headers=headers["admin"], json={"code": code, "name": code}
-        ).json()["id"]
-        for who, role in members.items():
-            client.post(
-                f"{API}/projects/{pid}/members",
-                headers=headers["admin"],
-                json={"user_id": str(users[who].id), "project_role": role},
-            )
-        return pid
-
-    nexsat = project(
-        "NEXSAT-1", {"ahmed": "lead", "mohamed": "engineer", "omar": "engineer", "sara": "viewer"}
-    )
-    sar = project("SAR", {"hussein": "lead"})
-    return {"h": headers, "u": users, "nexsat": nexsat, "sar": sar}
 
 
 def upload(

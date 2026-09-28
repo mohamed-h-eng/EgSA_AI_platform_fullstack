@@ -43,3 +43,24 @@ export interface AIModel {
 }
 
 export const OPENROUTER_DEFAULT_URL = 'https://openrouter.ai/api/v1'
+
+/** Mirrors backend `schemas/admin.py::UploadSettingsOut` (phase 09). */
+export type UploadFileType = 'pdf' | 'docx' | 'txt'
+export const UPLOAD_FILE_TYPES: UploadFileType[] = ['pdf', 'docx', 'txt']
+export const MAX_UPLOAD_MB_LIMIT = 500
+
+export interface UploadSettings {
+  max_upload_mb: number
+  allowed_file_types: UploadFileType[]
+  env_max_upload_mb: number
+  env_allowed_file_types: UploadFileType[]
+  overridden: boolean
+  updated_at: string | null
+  updated_by: { id: string; full_name: string; email: string } | null
+}
+
+export interface UploadSettingsUpdate {
+  max_upload_mb: number
+  allowed_file_types: UploadFileType[]
+  reset?: boolean
+}

@@ -1,4 +1,4 @@
-import { ChevronDown, KeyRound, LogOut } from 'lucide-react'
+import { ChevronDown, KeyRound, LogOut, UserCog } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 import { initials } from '@shared/lib/initials'
@@ -49,6 +49,10 @@ export function UserMenu() {
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => navigate('/settings')}>
+          <UserCog aria-hidden />
+          Profile &amp; settings
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/change-password')}>
           <KeyRound aria-hidden />
           Change password

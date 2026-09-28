@@ -54,7 +54,13 @@ export function ChatPage() {
 
   return (
     // Cancel the shell's padding: the chat workspace fills the whole content area.
-    <div className="-mx-8 -my-8 flex h-[calc(100%+4rem)] min-h-[28rem]">
+    <div
+      className="flex min-h-[28rem]"
+      style={{
+        margin: 'calc(-1 * var(--page-pad-y)) calc(-1 * var(--page-pad-x))',
+        height: 'calc(100% + 2 * var(--page-pad-y))',
+      }}
+    >
       <ConversationSidebar activeId={conversationId} />
 
       <section className="flex min-w-0 flex-1 flex-col bg-background" aria-label="Chat">

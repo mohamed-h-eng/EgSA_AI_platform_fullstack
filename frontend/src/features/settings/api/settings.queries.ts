@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import type { AIConfigUpdate } from '../model/types'
+import type { AIConfigUpdate, UploadSettingsUpdate } from '../model/types'
 import * as api from './settings.api'
 
 export const settingsKeys = {
   aiConfig: () => ['admin', 'ai-config'] as const,
   aiModels: (freeOnly: boolean) => ['admin', 'ai-models', freeOnly] as const,
+  uploads: () => ['admin', 'upload-settings'] as const,
 }
 
 export function useAIConfig() {
@@ -37,4 +38,20 @@ export function useUpdateAIConfig() {
 
 export function useTestConnection() {
   return useMutation({ mutationFn: api.testAIConnection })
+}
+
+export function useUploadSettings() {
+  return useQuery({ queryKey: settingsKeys.uploads(), queryFn: api.getUploadSettings })
+}
+
+export function useUpdateUploadSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: UploadSettingsUpdate) => api.updateUploadSettings(body),
+    onSuccess: (settings) => {
+      queryClient.setQueryData(settingsKeys.uploads(), settings)
+      // The documents feature caches the effective limits for its upload dialog.
+      void queryClient.invalidateQueries({ queryKey: ['document-upload-config'] })
+    },
+  })
 }

@@ -1,6 +1,13 @@
 import { http } from '@shared/api/http'
 
-import type { AIConfig, AIConfigUpdate, AIModel, ConnectionTestResult } from '../model/types'
+import type {
+  AIConfig,
+  AIConfigUpdate,
+  AIModel,
+  ConnectionTestResult,
+  UploadSettings,
+  UploadSettingsUpdate,
+} from '../model/types'
 
 export function getAIConfig(): Promise<AIConfig> {
   return http('/admin/ai/config')
@@ -19,4 +26,12 @@ export function testAIConnection(body: {
 
 export function listAvailableModels(freeOnly = true): Promise<AIModel[]> {
   return http(`/admin/ai/models?free_only=${freeOnly}`)
+}
+
+export function getUploadSettings(): Promise<UploadSettings> {
+  return http('/admin/settings')
+}
+
+export function updateUploadSettings(body: UploadSettingsUpdate): Promise<UploadSettings> {
+  return http('/admin/settings', { method: 'PUT', json: body })
 }

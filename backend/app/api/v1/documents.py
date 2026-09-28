@@ -8,7 +8,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
 
 from app.api.deps import Client, DbSession, require_permission
-from app.core.config import get_settings
 from app.models.document import DocumentStatus, FileType
 from app.models.user import User
 from app.permissions.codes import PermissionCode as P
@@ -22,6 +21,7 @@ from app.schemas.documents import (
 )
 from app.services.documents import service as documents
 from app.services.documents.validation import receive_upload
+from app.services.settings import service as app_settings
 from app.storage import StorageService, get_storage
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -29,15 +29,6 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 CanRead = Annotated[User, Depends(require_permission(P.DOCUMENTS_READ))]
 CanUpload = Annotated[User, Depends(require_permission(P.DOCUMENTS_UPLOAD))]
 Storage = Annotated[StorageService, Depends(get_storage)]
-
-
-def upload_config() -> UploadConfig:
-    # Phase 09 lets admins override these in the DB (admin settings).
-    settings = get_settings()
-    return UploadConfig(
-        max_upload_bytes=settings.max_upload_mb * 1024 * 1024,
-        allowed_types=[t for t in settings.allowed_file_type_list if t in FileType],
-    )
 
 
 # Static paths first: otherwise "/categories" would be parsed as a {document_id}.
@@ -49,8 +40,8 @@ def list_categories(_: CanRead, db: DbSession) -> list[CategoryOut]:
 
 
 @router.get("/upload-config", response_model=UploadConfig)
-def get_upload_config(_: CanRead) -> UploadConfig:
-    return upload_config()
+def get_upload_config(_: CanRead, db: DbSession) -> UploadConfig:
+    return app_settings.upload_config(db)
 
 
 @router.get("", response_model=Page[DocumentOut])
@@ -110,7 +101,7 @@ def upload_document(
             [{**e, "loc": ("body", *e["loc"])} for e in exc.errors()]
         ) from exc
 
-    config = upload_config()
+    config = app_settings.upload_config(db)
     validated = receive_upload(
         file.file,
         file.filename,

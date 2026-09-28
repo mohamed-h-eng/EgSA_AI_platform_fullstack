@@ -33,6 +33,8 @@ interface DocumentLibraryProps {
   /** Controlled selection (lets the page sync the open document with the URL). */
   selectedId?: string | null
   onSelectedIdChange?: (id: string | null) => void
+  /** Search text to start with (e.g. from the header search). */
+  initialSearch?: string
 }
 
 export function DocumentLibrary({
@@ -40,8 +42,9 @@ export function DocumentLibrary({
   canContribute = true,
   selectedId: controlledId,
   onSelectedIdChange,
+  initialSearch = '',
 }: DocumentLibraryProps) {
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
   const [projectFilter, setProjectFilter] = useState<string | null>(null)
   const [category, setCategory] = useState(ALL)
   const [type, setType] = useState<FileType | typeof ALL>(ALL)

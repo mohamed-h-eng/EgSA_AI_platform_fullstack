@@ -14,6 +14,7 @@ from app.models.role import Role
 from app.models.user import User
 from app.permissions.matrix import ADMIN
 from app.permissions.policies import count_active_admins
+from app.schemas.admin import ProfileUpdate
 from app.schemas.common import PageParams
 from app.schemas.users import UserCreate, UserStatus, UserUpdate
 from app.services import audit
@@ -247,3 +248,28 @@ def reset_password(
 
 def list_roles(db: Session) -> list[Role]:
     return list(db.scalars(select(Role).order_by(Role.name)))
+
+
+def update_profile(db: Session, user: User, data: ProfileUpdate, *, ip: str | None) -> User:
+    """Self-service: name and job title only. Email and role stay admin-managed."""
+    changed: list[str] = []
+    if data.full_name is not None and data.full_name != user.full_name:
+        user.full_name = data.full_name
+        changed.append("full_name")
+    if "job_title" in data.model_fields_set:
+        job_title = (data.job_title or "").strip() or None
+        if job_title != user.job_title:
+            user.job_title = job_title
+            changed.append("job_title")
+    if changed:
+        audit.log(
+            db,
+            AuditAction.PROFILE_UPDATE,
+            actor_id=user.id,
+            target_type="user",
+            target_id=user.id,
+            meta={"changed": changed},
+            ip=ip,
+        )
+        db.commit()
+    return user

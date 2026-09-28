@@ -38,3 +38,10 @@ export function changePassword(
     json: { current_password: values.current_password, new_password: values.new_password },
   })
 }
+
+export function updateProfile(values: {
+  full_name: string
+  job_title: string | null
+}): Promise<AuthUser> {
+  return http('/me', { method: 'PATCH', json: values })
+}

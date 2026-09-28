@@ -1,12 +1,18 @@
 """Audit logging (ADR-09): services call `audit.log(...)` inside their own transaction."""
 
 import uuid
+from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.audit import AuditLog
+from app.models.user import User
+from app.schemas.admin import AuditLogOut
+from app.schemas.common import PageParams
+from app.schemas.projects import UserSummary
 
 
 class AuditAction(StrEnum):
@@ -35,8 +41,11 @@ class AuditAction(StrEnum):
     DOCUMENT_DOWNLOAD = "document.download"
     DOCUMENT_DELETE = "document.delete"
 
+    PROFILE_UPDATE = "profile.update"
+
     AI_REQUEST = "ai.request"
     SETTINGS_AI_UPDATE = "settings.ai_update"
+    SETTINGS_UPDATE = "settings.update"
 
 
 def log(
@@ -60,3 +69,56 @@ def log(
     )
     db.add(entry)
     return entry
+
+
+def list_logs(
+    db: Session,
+    params: PageParams,
+    *,
+    actor: str | None = None,
+    action: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> tuple[list[AuditLogOut], int]:
+    """Newest first. `action` matches exactly or as a prefix ("document" → "document.*");
+    `actor` matches the actor's email or name."""
+    query = select(AuditLog, User).outerjoin(User, User.id == AuditLog.actor_id)
+    if actor and actor.strip():
+        term = actor.strip()
+        query = query.where(
+            or_(
+                User.email.icontains(term, autoescape=True),
+                User.full_name.icontains(term, autoescape=True),
+            )
+        )
+    if action and action.strip():
+        term = action.strip()
+        query = query.where(
+            or_(AuditLog.action == term, AuditLog.action.startswith(f"{term}.", autoescape=True))
+        )
+    if date_from:
+        query = query.where(AuditLog.created_at >= date_from)
+    if date_to:
+        query = query.where(AuditLog.created_at < date_to)
+
+    total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    rows = db.execute(
+        query.order_by(AuditLog.created_at.desc(), AuditLog.id)
+        .offset(params.offset)
+        .limit(params.page_size)
+    ).all()
+    return [
+        AuditLogOut(
+            id=entry.id,
+            action=entry.action,
+            actor=UserSummary(id=user.id, full_name=user.full_name, email=user.email)
+            if user
+            else None,
+            target_type=entry.target_type,
+            target_id=entry.target_id,
+            meta=entry.meta or {},
+            ip=entry.ip,
+            created_at=entry.created_at,
+        )
+        for entry, user in rows
+    ], total

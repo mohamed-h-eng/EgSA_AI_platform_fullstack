@@ -6,6 +6,10 @@ export const settingsFeature: FeatureManifest = {
   id: 'settings',
   routes: [
     {
+      path: 'settings',
+      lazy: async () => ({ Component: (await import('./pages/ProfilePage')).ProfilePage }),
+    },
+    {
       path: 'admin/settings',
       handle: { permission: 'settings:manage' },
       lazy: async () => ({

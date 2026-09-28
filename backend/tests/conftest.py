@@ -113,3 +113,38 @@ def login(client: TestClient, email: str, password: str = DEFAULT_PASSWORD):
 
 def auth_header(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def lib(client: TestClient, make_user):
+    """NEXSAT-1: Ahmed lead, Mohamed + Omar engineers, Sara viewer. SAR: Hussein lead."""
+    people = {
+        "admin": ("admin", "admin@egsa.local"),
+        "ahmed": ("project_lead", "ahmed@egsa.local"),
+        "mohamed": ("engineer", "mohamed@egsa.local"),
+        "omar": ("engineer", "omar@egsa.local"),
+        "sara": ("viewer", "sara@egsa.local"),
+        "hussein": ("project_lead", "hussein@egsa.local"),
+    }
+    users, headers = {}, {}
+    for key, (role, email) in people.items():
+        users[key] = make_user(email, role=role, full_name=key.title())
+        headers[key] = auth_header(login(client, email).json()["access_token"])
+
+    def project(code: str, members: dict[str, str]) -> str:
+        pid = client.post(
+            "/api/v1/projects", headers=headers["admin"], json={"code": code, "name": code}
+        ).json()["id"]
+        for who, role in members.items():
+            client.post(
+                f"/api/v1/projects/{pid}/members",
+                headers=headers["admin"],
+                json={"user_id": str(users[who].id), "project_role": role},
+            )
+        return pid
+
+    nexsat = project(
+        "NEXSAT-1", {"ahmed": "lead", "mohamed": "engineer", "omar": "engineer", "sara": "viewer"}
+    )
+    sar = project("SAR", {"hussein": "lead"})
+    return {"h": headers, "u": users, "nexsat": nexsat, "sar": sar}

@@ -13,7 +13,7 @@ Status values: `pending` · `in-progress` · `blocked` · `done`
 | 06 | Chat Backend                | workflows/06-chat-backend.md          | 3–4 d    | done    | 2026-09-23 | Conversations/messages, owner-only, project-scoped visibility, placeholder responder behind `ChatResponder`, error+retry, Arabic-safe titles, demo chats; 154 BE + 39 FE tests; verified E2E via nginx |
 | 07 | OpenRouter Integration      | workflows/07-openrouter.md            | 2–3 d    | done    | 2026-09-23 | Admin-entered OpenRouter connection (encrypted key), model allow-list, guardrailed prompts, SSE streaming + fallback, usage/audit per request; 190 BE + 43 FE tests; live-verified against OpenRouter (invalid-key paths, catalog); a successful live answer needs a real key |
 | 08 | Chat UI                     | workflows/08-chat-ui.md               | 3–4 d    | done    | 2026-09-28 | Two-pane chat (history grouped by date, search, rename/delete), SSE streaming with Stop, error + Retry, model picker, markdown + code highlight, `dir="auto"` Arabic, D2 warning, not-configured state; 190 BE + 52 FE tests; stream verified E2E via nginx (visual browser check pending: extension not connected) |
-| 09 | Dashboard, Settings, Polish | workflows/09-dashboard-polish.md      | 2–3 d    | pending |           |       |
+| 09 | Dashboard, Settings, Polish | workflows/09-dashboard-polish.md      | 2–3 d    | done    | 2026-09-28 | Scoped dashboard (hero, stats, recent work, admin AI-usage table), profile page, admin upload limits (DB overrides env), audit log API + UI, header search (Ctrl+K), responsive shell (icon rail / mobile drawer), in-shell 404 (B1), AI-failure toast; 204 BE + 61 FE tests; dashboard counts cross-checked against SQL and upload override verified E2E via nginx (visual browser check pending: extension not connected) |
 | 10 | Testing & Demo Readiness    | workflows/10-testing.md               | 3–5 d    | pending |           |       |
 
 ## Decision / deviation log
@@ -62,4 +62,10 @@ Record anything that differs from `.agent/*` or `plan.md` here.
 | 2026-09-28 | 08 | If the stream can't be opened (network/5xx), the UI falls back to the non-streaming endpoint; 4xx errors are shown as-is | Proxies that break SSE still get answers; validation errors must not double-send |
 | 2026-09-28 | 08 | A new chat is created only when its first message is sent | No empty conversations in history |
 | 2026-09-28 | 08 | `readSSE` decodes with `TextDecoder({stream})` instead of `TextDecoderStream` | Keeps Arabic multi-byte chars intact across chunks; works in jsdom and TS 6 typings |
+| 2026-09-28 | 09 | Upload limits live in a single-row `app_settings` table; NULL = environment default, "Reset" clears the override | Admins can change limits without a redeploy; env stays the fallback |
+| 2026-09-28 | 09 | Dashboard reuses each feature's list service (page size 5) for recent items and counts | Same visibility rules as the list pages, no duplicated scoping SQL |
+| 2026-09-28 | 09 | Admin block gated by `settings:manage`; AI usage is a 7-day per-user table (requests, failed, tokens) | D11: tracked, no limits |
+| 2026-09-28 | 09 | Header search hands text to list pages via `?q=` (documents default, projects second), filtered by permission | POC scope: no unified search index |
+| 2026-09-28 | 09 | Profile edits are self-service for name and job title only; email and role stay admin-managed | Identity fields are access-relevant |
+| 2026-09-28 | 09 | The dashboard hero art is an inline SVG | D1: no external images or CDNs |
 | 2026-09-23 | 01 | Health endpoint returns 503 `{status: degraded}` when the DB is down (instead of 200) | Lets Docker/monitoring detect DB loss |

@@ -78,7 +78,7 @@ api (router)  →  services  →  models / storage / ai provider
 - **Tooling:** `uv` manages dependencies (`pyproject.toml` + `uv.lock`). The Dockerfile uses `uv sync --frozen`.
 - Every schema change goes through an Alembic migration. Never use `create_all` outside tests.
 - Secrets come only from env vars. `.env.example` is committed and `.env` is not.
-- Audit (`services/audit.log(...)`) is called on: login, logout, user create, role change, permission/membership change, project create, document upload/download/delete, AI request.
+- Audit (`services/audit.log(...)`) is called on: login, logout, user create, role change, permission/membership change, project create, document upload/download/delete, AI request, profile update, settings changes. Every `AuditAction` must be emitted somewhere; `tests/test_phase09.py::test_every_audit_action_is_emitted_somewhere` enforces it.
 
 ## Database tables (plan §33, plus supporting tables)
 

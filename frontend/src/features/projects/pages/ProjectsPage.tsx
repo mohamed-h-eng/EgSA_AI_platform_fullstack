@@ -1,5 +1,6 @@
 import { FolderKanban, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import { Can } from '@features/auth'
 import { useDebounce } from '@shared/hooks/useDebounce'
@@ -20,7 +21,14 @@ import { PROJECT_STATUSES, type ProjectStatus, STATUS_META } from '../model/type
 const ALL = 'all'
 
 export function ProjectsPage() {
-  const [search, setSearch] = useState('')
+  // ?q= comes from the header search; a new search restarts the list with that text.
+  const [params] = useSearchParams()
+  const q = params.get('q') ?? ''
+  return <ProjectsList key={q} initialSearch={q} />
+}
+
+function ProjectsList({ initialSearch }: { initialSearch: string }) {
+  const [search, setSearch] = useState(initialSearch)
   const [status, setStatus] = useState<ProjectStatus | typeof ALL>(ALL)
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)

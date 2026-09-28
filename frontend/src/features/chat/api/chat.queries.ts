@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useRef, useState } from 'react'
 
+import { notify } from '@features/notifications'
 import { ApiError } from '@shared/api/http'
 import { readSSE } from '@shared/lib/sse'
 
@@ -95,6 +96,13 @@ export function useDeleteConversation() {
 
 export type StreamPhase = 'idle' | 'sending' | 'streaming'
 
+/** Plan §29 toast. A user pressing Stop is not a failure. */
+function reportFailure(message: ChatMessage) {
+  if (message.status === 'error' && message.error_code !== 'STREAM_ABORTED') {
+    notify.error('AI request failed', 'You can retry the answer.')
+  }
+}
+
 /**
  * Sends a message and streams the reply (decision D5). All state lives in the React Query cache:
  * `start` appends the user + empty assistant message, each `delta` grows the assistant text,
@@ -127,6 +135,7 @@ export function useChatStream(conversationId: string | null) {
       })
       queryClient.setQueryData<Conversation>(chatKeys.conversation(id), result.conversation)
       refreshLists()
+      reportFailure(result.assistant_message)
     },
     [queryClient, refreshLists, setMessages],
   )
@@ -176,6 +185,7 @@ export function useChatStream(conversationId: string | null) {
           } else if (event === 'done' || event === 'error') {
             const final = JSON.parse(data) as StreamFinal
             setMessages(id, (list) => upsert(list, final.assistant_message))
+            reportFailure(final.assistant_message)
           }
         }
       } catch (err) {

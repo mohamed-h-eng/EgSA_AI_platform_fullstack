@@ -11,6 +11,13 @@ export interface AuthContextValue {
   changePassword: (
     values: Pick<ChangePasswordValues, 'current_password' | 'new_password'>,
   ) => Promise<void>
+  /** Self-service profile edit (name, job title); updates `user` in place. */
+  updateProfile: (values: ProfileValues) => Promise<AuthUser>
+}
+
+export interface ProfileValues {
+  full_name: string
+  job_title: string | null
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
