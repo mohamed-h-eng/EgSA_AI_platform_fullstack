@@ -17,6 +17,7 @@
 - [ ] No cross-feature internal imports (boundary lint passes). `shared/` doesn't import from features.
 - [ ] Every data view has loading, empty, and error states. Actions are permission-gated.
 - [ ] Uses design tokens only (no hard-coded hex values), Lucide icons, and the PageHeader pattern.
+- [ ] UI definition of done (`rules/ui-principles.md` §34, §38): hover, focus, disabled, loading, error and empty states exist; errors say whether the user's data is safe; borders instead of shadows on cards; keyboard works; no new visual pattern without a reason.
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` pass.
 - [ ] No external runtime URLs (fonts and assets are self-hosted). User-generated text is rendered with `dir="auto"`.
 
@@ -26,5 +27,5 @@
 
 ## Wrap-up
 - [ ] `docker compose up --build` still works, and `pre-commit run --all-files` passes (it's the quality gate, since there's no CI).
-- [ ] Nothing contradicts D1–D16 in `context/decisions.md`.
+- [ ] Nothing contradicts D1–D17 in `context/decisions.md`.
 - [ ] `progress.md` is updated (status, date, notes).

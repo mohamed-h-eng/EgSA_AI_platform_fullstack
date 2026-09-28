@@ -27,7 +27,7 @@ export function ProjectDetailPage() {
     return (
       <div className="flex flex-col gap-4">
         <Skeleton className="h-10 w-72" />
-        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-48 w-full rounded-lg" />
       </div>
     )
   }
@@ -121,7 +121,7 @@ function ProjectView({ project }: { project: ProjectDetail }) {
 
         <TabsContent value="overview" className="mt-6">
           <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-            <Card className="shadow-card">
+            <Card>
               <CardContent>
                 <h2 className="text-lg font-semibold">About</h2>
                 {project.description ? (
@@ -133,7 +133,7 @@ function ProjectView({ project }: { project: ProjectDetail }) {
                 )}
               </CardContent>
             </Card>
-            <Card className="shadow-card">
+            <Card>
               <CardContent>
                 <dl className="grid grid-cols-[110px_1fr] gap-x-4 gap-y-3 text-sm">
                   <Fact label="Status">

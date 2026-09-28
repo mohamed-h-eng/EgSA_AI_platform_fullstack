@@ -13,7 +13,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       to={`/projects/${project.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border bg-card shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className="group flex flex-col overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       <div className="relative flex h-24 items-end bg-gradient-to-br from-navy to-navy-deep px-5 pb-3">
         <Satellite

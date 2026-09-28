@@ -63,7 +63,7 @@ export function MembersPanel({ project }: { project: ProjectDetail }) {
       {isError ? (
         <FormError message={error.message} />
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-hidden rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="bg-surface-muted hover:bg-surface-muted">

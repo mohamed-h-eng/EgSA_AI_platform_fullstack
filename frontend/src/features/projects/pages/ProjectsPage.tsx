@@ -101,7 +101,7 @@ function ProjectsList({ initialSearch }: { initialSearch: string }) {
       ) : isPending ? (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={i} className="h-60 rounded-xl" />
+            <Skeleton key={i} className="h-60 rounded-lg" />
           ))}
         </div>
       ) : data.total === 0 ? (
@@ -116,7 +116,7 @@ function ProjectsList({ initialSearch }: { initialSearch: string }) {
             ))}
           </div>
           {data.total > PROJECTS_PAGE_SIZE && (
-            <div className="mt-6 overflow-hidden rounded-xl border bg-card">
+            <div className="mt-6 overflow-hidden rounded-lg border bg-card">
               <PaginationBar
                 page={data.page}
                 pageSize={PROJECTS_PAGE_SIZE}
@@ -136,7 +136,7 @@ function ProjectsList({ initialSearch }: { initialSearch: string }) {
 
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-card px-6 py-16 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed bg-card px-6 py-16 text-center">
       <FolderKanban className="size-10 text-muted-foreground/60" aria-hidden />
       <p className="font-medium text-navy">
         {filtered ? 'No projects match your filters' : 'No projects yet'}

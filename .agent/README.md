@@ -34,7 +34,8 @@ It defines **what to build, in what order, and the rules to follow**. It is a pl
 │   ├── frontend-architecture.md   ← FEATURE-SCOPED folder structure (overrides plan §32)
 │   ├── backend-architecture.md    ← FastAPI layout, layering, conventions
 │   ├── security-permissions.md    ← RBAC + project membership rules
-│   └── design-system.md           ← UI tokens & conventions (summary of design.md)
+│   ├── design-system.md           ← UI tokens & conventions (summary of design.md, EgSA brand)
+│   └── ui-principles.md           ← general enterprise UI practice (below design-system.md)
 │
 ├── workflows/
 │   ├── 00-overview.md             ← phase order, dependencies, timeline
@@ -48,6 +49,7 @@ It defines **what to build, in what order, and the rules to follow**. It is a pl
 │   ├── 08-chat-ui.md
 │   ├── 09-dashboard-polish.md     ← dashboard, settings, audit, notifications
 │   ├── 10-testing.md
+│   ├── 11-sidebar-redesign.md     ← Claude-style unified sidebar (D18)
 │   └── add-feature.md             ← repeatable recipe for scaling with new features
 │
 └── checklists/

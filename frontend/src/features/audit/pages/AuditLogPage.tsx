@@ -51,7 +51,7 @@ export function AuditLogPage() {
     <>
       <PageHeader title="Audit log" subtitle="Who did what, and when. Newest first." />
 
-      <Card className="gap-0 overflow-hidden py-0 shadow-card">
+      <Card className="gap-0 overflow-hidden py-0">
         <div className="flex flex-wrap items-end gap-3 border-b p-4">
           <div className="relative min-w-56 flex-1">
             <Search

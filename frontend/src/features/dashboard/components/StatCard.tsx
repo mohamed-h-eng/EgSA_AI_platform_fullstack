@@ -35,8 +35,7 @@ export function StatCard({ label, value, icon: Icon, to, tone = 'primary' }: Sta
       </span>
     </>
   )
-  const className =
-    'flex items-center gap-4 rounded-xl border bg-surface p-5 shadow-card transition-colors'
+  const className = 'flex items-center gap-4 rounded-lg border bg-surface p-5 transition-colors'
   return to ? (
     <Link
       to={to}

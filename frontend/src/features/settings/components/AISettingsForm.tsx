@@ -183,7 +183,7 @@ function Section({
   children: ReactNode
 }) {
   return (
-    <Card className="shadow-card">
+    <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>

@@ -68,7 +68,7 @@ export function UploadSettingsForm({ settings }: { settings: UploadSettings }) {
   }
 
   return (
-    <Card className="shadow-card">
+    <Card>
       <CardHeader>
         <CardTitle>Document uploads</CardTitle>
         <CardDescription>

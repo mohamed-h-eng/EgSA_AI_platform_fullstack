@@ -93,7 +93,13 @@ function AssistantMessage({
             className="flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger"
           >
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>{message.content}</span>
+            <span>
+              {message.content}
+              <span className="mt-1 block text-xs text-danger/80">
+                Your message is saved in this conversation.
+                {canRetry ? ' You can retry the answer.' : ''}
+              </span>
+            </span>
           </div>
         ) : (
           <div className="rounded-lg border bg-surface px-4 py-3">

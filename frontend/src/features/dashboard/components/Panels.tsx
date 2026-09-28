@@ -21,7 +21,7 @@ interface PanelProps {
 
 function Panel({ title, viewAll, loading, empty, count, children }: PanelProps) {
   return (
-    <Card className="gap-0 shadow-card">
+    <Card className="gap-0">
       <CardHeader className="flex flex-row items-center justify-between gap-2 border-b pb-4">
         <CardTitle className="text-base">{title}</CardTitle>
         {viewAll && (

@@ -47,6 +47,7 @@
   --input: var(--egsa-input-border);
   --ring: var(--egsa-blue);
 
-  /* Radius: sm 8 · md 10 · lg 12 · xl 16 (design.md §37) */
-  --radius: 0.75rem;
+  /* Radius: sm 6 (small controls) · md 8 (inputs, buttons) · lg 10 (cards) · xl 14
+     (rules/ui-principles.md §8: restrained rounding) */
+  --radius: 0.625rem;
 }

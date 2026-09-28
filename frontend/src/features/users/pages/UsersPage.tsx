@@ -60,7 +60,7 @@ export function UsersPage() {
         }
       />
 
-      <Card className="gap-0 overflow-hidden py-0 shadow-card">
+      <Card className="gap-0 overflow-hidden py-0">
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
           <div className="relative min-w-60 flex-1">
             <Search

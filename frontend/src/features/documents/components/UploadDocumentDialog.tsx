@@ -149,9 +149,9 @@ function UploadForm({
       } else if (error instanceof ApiError && error.code.startsWith('FILE_')) {
         setFileError(error.message)
       } else {
-        setServerError(
-          error instanceof ApiError ? error.message : 'Upload failed. Please try again.',
-        )
+        // ui-principles §27: what happened, that nothing was stored, what to do next.
+        const reason = error instanceof ApiError ? error.message : 'Upload failed.'
+        setServerError(`${reason} The document was not saved; you can try again.`)
       }
     } finally {
       setController(null)

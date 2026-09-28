@@ -63,6 +63,17 @@
   h4 {
     @apply text-navy;
   }
+  /* ui-principles §29: respect reduced motion (streaming cursor, dialogs, skeletons). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* Chat message Markdown (design.md §24). Paragraph direction follows the text (dir="auto");

@@ -29,8 +29,12 @@ docker compose up --build   # http://localhost  (HTTP_PORT in .env)
 ```
 
 On start, the backend runs `alembic upgrade head` and seeds roles, permissions and the first
-admin (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, used only when that admin is first created). The dashboard shows live **Backend API** and
-**Database** status. The API docs are at `http://localhost/api/v1/docs`.
+admin (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, used only when that admin is first created).
+`GET /api/v1/health` reports the backend and database status. The API docs are at
+`http://localhost/api/v1/docs`.
+
+Admins can also set the **upload limits** (max size, allowed types) in **Admin Settings → Uploads**;
+they override `MAX_UPLOAD_MB` / `ALLOWED_FILE_TYPES` from `.env` until reset.
 
 ### Connecting the AI (OpenRouter)
 
@@ -89,6 +93,24 @@ pre-commit run --all-files    # run everything manually
 | Backend  | `uv run pytest` · `uv run ruff check .` · `uv run ruff format .` · `uv run mypy app` |
 | Frontend | `pnpm test` · `pnpm lint` · `pnpm typecheck` · `pnpm format` · `pnpm build` |
 
+The backend suite includes a role × endpoint permission matrix (`tests/test_role_matrix.py`) and
+an audit matrix that checks every audited action writes exactly one row (`tests/test_audit_rows.py`).
+
+### Demo acceptance run
+
+`scripts/demo_acceptance.py` runs the demo checklist (`.agent/checklists/demo-acceptance.md`)
+against a running stack through the API. It uses fresh names on every run, so it can run twice in a
+row. It needs the stack to be seeded from the same `.env` (admin and demo passwords):
+
+```bash
+python scripts/demo_acceptance.py --base-url http://localhost --env-file .env
+```
+
+To test a clean install without touching your data, start a separate stack first:
+`HTTP_PORT=8088 docker compose -p egsa-e2e up -d --build`, run the script with
+`--base-url http://localhost:8088`, then `docker compose -p egsa-e2e down -v`.
+The script disables the user it creates (step 17), so use a throwaway stack when you can.
+
 `pnpm lint` also enforces the **feature boundaries**: a feature may import another feature only
 through its `index.ts`, and `src/shared` may never import features or `src/app`.
 
@@ -104,3 +126,18 @@ through its `index.ts`, and `src/shared` may never import features or `src/app`.
   - Local tools: set `UV_SYSTEM_CERTS=1` for uv. Node/pnpm use `NODE_EXTRA_CA_CERTS`.
   - Docker builds: copy the inspecting CA certificate (PEM) as `*.crt` into `backend/certs/` and
     `frontend/certs/`. These files are git-ignored.
+
+## Known limitations (POC)
+
+- **No document knowledge in chat yet.** The assistant answers general engineering questions; it
+  can't read EgSA documents (no RAG). Its system prompt forbids claiming otherwise.
+- **Search** is per list (documents, projects, conversation titles), using `ILIKE`; there's no
+  full-text or cross-entity index. Header search (Ctrl+K) hands the text to those lists.
+- **Single backend process.** The login rate limiter is in memory (backlog B3), and expired
+  refresh tokens aren't cleaned up yet (B2).
+- **Local file storage** only (`STORAGE_ROOT`); back up the `storage-data` volume with the database.
+- **Chat on phones** hides the conversation list; open past chats from the dashboard.
+- **Brand assets:** the sidebar uses a placeholder mark until the official EgSA logo is added at
+  `frontend/src/shared/assets/egsa-logo.svg`.
+- The live AI answer needs an OpenRouter key entered by an admin; without one, chat saves the
+  question and shows a clear "not configured" message with Retry.

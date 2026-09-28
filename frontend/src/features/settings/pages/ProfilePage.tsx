@@ -48,7 +48,7 @@ export function ProfilePage() {
     <>
       <PageHeader title="Settings" subtitle="Your profile and account security." />
       <div className="grid max-w-3xl gap-6">
-        <Card className="shadow-card">
+        <Card>
           <CardHeader>
             <CardTitle>Profile</CardTitle>
             <CardDescription>How your name appears across the platform.</CardDescription>
@@ -101,7 +101,7 @@ export function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-card">
+        <Card>
           <CardHeader>
             <CardTitle>Password</CardTitle>
             <CardDescription>

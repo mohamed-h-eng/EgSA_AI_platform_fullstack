@@ -30,7 +30,7 @@ export function AdminSettingsPage() {
 
 function AISection() {
   const { data: config, isPending, isError, error } = useAIConfig()
-  if (isPending) return <Skeleton className="h-96 w-full rounded-xl" />
+  if (isPending) return <Skeleton className="h-96 w-full rounded-lg" />
   if (isError) return <FormError message={error.message} />
   // Remount when the saved config changes so the form restarts from server values.
   return <AISettingsForm key={config.updated_at ?? 'new'} config={config} />
@@ -38,7 +38,7 @@ function AISection() {
 
 function UploadsSection() {
   const { data: settings, isPending, isError, error } = useUploadSettings()
-  if (isPending) return <Skeleton className="h-72 w-full rounded-xl" />
+  if (isPending) return <Skeleton className="h-72 w-full rounded-lg" />
   if (isError) return <FormError message={error.message} />
   return <UploadSettingsForm key={settings.updated_at ?? 'env'} settings={settings} />
 }

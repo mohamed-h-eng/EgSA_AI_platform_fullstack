@@ -75,7 +75,7 @@ export function DocumentLibrary({
     }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card shadow-card">
+    <div className="overflow-hidden rounded-lg border bg-card">
       <div className="flex flex-wrap items-center gap-3 border-b p-4">
         <div className="relative min-w-56 flex-1">
           <Search

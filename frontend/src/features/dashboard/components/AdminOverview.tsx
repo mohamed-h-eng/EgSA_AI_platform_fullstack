@@ -48,7 +48,7 @@ export function AdminOverview({ stats }: { stats: AdminStats }) {
         ))}
       </dl>
 
-      <Card className="gap-0 overflow-hidden py-0 shadow-card">
+      <Card className="gap-0 overflow-hidden py-0">
         <CardHeader className="border-b py-4">
           <CardTitle className="text-base">AI usage per user</CardTitle>
           <CardDescription>Last 7 days. Usage is tracked for visibility only.</CardDescription>
