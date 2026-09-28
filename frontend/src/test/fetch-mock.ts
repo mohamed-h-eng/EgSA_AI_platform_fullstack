@@ -10,12 +10,13 @@ export const json = (status: number, body: unknown) =>
 
 /**
  * Route-based fetch mock: `mockApi({ 'POST /auth/login': () => json(200, {...}) })`.
- * Keys are "METHOD /path" relative to /api/v1. Unmatched requests fail the test loudly.
+ * Keys are "METHOD /path" relative to /api/v1, without the query string (handlers get the full
+ * URL to inspect it). Unmatched requests fail the test loudly.
  */
 export function mockApi(routes: Record<string, Handler>) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    const path = url.replace(/^.*\/api\/v1/, '')
+    const path = url.replace(/^.*\/api\/v1/, '').split('?')[0]
     const key = `${(init?.method ?? 'GET').toUpperCase()} ${path}`
     const handler = routes[key]
     if (!handler) throw new Error(`Unmocked request: ${key}`)

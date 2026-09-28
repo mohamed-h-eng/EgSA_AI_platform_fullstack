@@ -6,11 +6,11 @@ import { Navigate, useLocation, useNavigate } from 'react-router'
 
 import { ApiError } from '@shared/api/http'
 import { Button } from '@shared/ui/button'
+import { FieldError, FormError } from '@shared/ui/form-message'
 import { Input } from '@shared/ui/input'
 import { Label } from '@shared/ui/label'
 
 import { AuthLayout } from '../components/AuthLayout'
-import { FieldError, FormError } from '../components/FormError'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../hooks/useAuth'
 import { type LoginValues, loginSchema } from '../model/schemas'

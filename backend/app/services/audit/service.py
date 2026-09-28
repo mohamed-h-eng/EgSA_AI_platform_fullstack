@@ -16,6 +16,28 @@ class AuditAction(StrEnum):
     AUTH_PASSWORD_CHANGE = "auth.password_change"
     AUTH_REFRESH_REUSE = "auth.refresh_reuse_detected"
 
+    USER_CREATE = "user.create"
+    USER_UPDATE = "user.update"
+    USER_DISABLE = "user.disable"
+    USER_ENABLE = "user.enable"
+    USER_ROLE_CHANGE = "user.role_change"
+    USER_PASSWORD_RESET = "user.password_reset"
+
+    PROJECT_CREATE = "project.create"
+    PROJECT_UPDATE = "project.update"
+    PROJECT_DELETE = "project.delete"
+    PROJECT_MEMBER_ADD = "project.member_add"
+    PROJECT_MEMBER_ROLE_CHANGE = "project.member_role_change"
+    PROJECT_MEMBER_REMOVE = "project.member_remove"
+
+    DOCUMENT_UPLOAD = "document.upload"
+    DOCUMENT_UPDATE = "document.update"
+    DOCUMENT_DOWNLOAD = "document.download"
+    DOCUMENT_DELETE = "document.delete"
+
+    AI_REQUEST = "ai.request"
+    SETTINGS_AI_UPDATE = "settings.ai_update"
+
 
 def log(
     db: Session,

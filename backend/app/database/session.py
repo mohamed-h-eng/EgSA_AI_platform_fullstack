@@ -15,3 +15,8 @@ def get_db() -> Iterator[Session]:
         yield db
     finally:
         db.close()
+
+
+def get_session_factory() -> sessionmaker[Session]:
+    """For work that outlives the request-scoped session (e.g. an SSE stream)."""
+    return SessionLocal

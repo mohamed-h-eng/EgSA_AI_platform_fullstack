@@ -24,7 +24,7 @@ Items marked **(plan)** come from `plan.md`. Items marked **(default)** fill gap
 | HTTP client (AI)     | httpx (async, streaming)                                    | default   |
 | Database             | PostgreSQL 16                                               | plan      |
 | File storage         | Local filesystem behind `StorageService`                    | plan      |
-| AI                   | OpenRouter, free models, configurable via env + DB          | plan      |
+| AI                   | OpenRouter, free models, configured in Admin Settings (DB, key encrypted) | plan / D17 |
 | API style            | REST, JSON; SSE for streaming chat                          | plan      |
 | Tests                | pytest + httpx TestClient (BE); Vitest + RTL (FE); Playwright optional for E2E | default |
 | Lint / format        | ruff + mypy (BE); ESLint + Prettier + tsc (FE)              | default   |
@@ -56,7 +56,7 @@ Items marked **(plan)** come from `plan.md`. Items marked **(default)** fill gap
 | D5 | Streaming      | **SSE streaming from the start** (phase 07 main path). A non-streaming endpoint stays as a fallback. |
 | D6 | UI kit         | **shadcn/ui + Tailwind**, restyled to `design.md`. |
 | D7 | Document status | **Metadata label only** (Draft / Pending Review / Approved / Obsolete), editable by anyone with edit rights on the document. No approval workflow. |
-| D8 | Git / CI       | **Local git only**, with pre-commit hooks (ruff, prettier, eslint). No CI pipeline yet. |
+| D8 | Git / CI       | **Local git only**, with pre-commit hooks (ruff, prettier, eslint). No CI pipeline yet. **Branching:** all ongoing work is committed to `dev`; the user reviews and tests manually, then merges `dev` → `main` themselves. Never commit directly to `main`. |
 | D9 | Passwords      | The admin sets a **temporary password** and the user is **forced to change it at first login**. The admin can reset a password, which sets a new temp password and forces another change. No email. |
 | D10 | Chat access   | **All roles** (including Viewer) have `chat:use`. |
 | D11 | AI quotas     | **Track usage per user (requests and tokens), no limits.** Handle 429 from OpenRouter gracefully. Usage appears on the admin dashboard. |
@@ -64,6 +64,7 @@ Items marked **(plan)** come from `plan.md`. Items marked **(default)** fill gap
 | D13 | Package managers | **uv + pnpm.** |
 | D14 | Document codes | **Unique per project** (`UNIQUE(project_id, code)`). A duplicate upload is rejected with `DOCUMENT_CODE_EXISTS`. No revisions in the POC. |
 | D15 | Session       | **15 min access / 8 h refresh.** |
+| D17 | AI connection | **Entered manually by an admin in Admin Settings → AI model** (not `.env`): base URL, API key, allowed/default models, prompt, limits. The key is **encrypted at rest** (Fernet; `APP_ENCRYPTION_KEY` or derived from `JWT_SECRET`), **write-only** via the API (only "set, …last 4" is shown), never logged or audited, and only used by the backend. Changes plan §19. |
 | D16 | Deletion      | **Soft-delete conversations and projects** (`deleted_at`, hidden everywhere, admin can recover through the DB). **Documents are hard-deleted** along with their file. The audit log keeps every deletion. |
 
 ### Still open (non-blocking)

@@ -33,21 +33,28 @@ class Settings(BaseSettings):
     login_max_attempts: int = 5
     login_window_seconds: int = 900
     password_min_length: int = 10
+    # bcrypt work factor. Keep 12+ in real deployments; tests lower it for speed.
+    bcrypt_rounds: int = 12
 
     # Storage
     storage_root: str = "./storage"
     max_upload_mb: int = 50
     allowed_file_types: str = "pdf,docx,txt"
 
-    # AI (backend only)
-    openrouter_api_key: str = ""
-    openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    default_ai_model: str = ""
+    # AI: the OpenRouter connection (API key, base URL, models) is configured by an admin in
+    # Admin Settings and stored encrypted in the DB, not in environment variables.
+    # Optional dedicated key for encrypting DB secrets; derived from JWT_SECRET when empty.
+    app_encryption_key: str = ""
+    ai_request_timeout_seconds: float = 60.0
+    # Sent to OpenRouter as HTTP-Referer / X-Title (app attribution).
+    public_app_url: str = "http://localhost"
 
     # Seed
     seed_admin_email: str = "admin@egsa.local"
     seed_admin_password: str = "change-me"
     seed_demo: bool = False
+    # Shared password for the fake demo accounts (D12). Empty = demo users are not created.
+    seed_demo_password: str = ""
 
     # CORS (comma-separated)
     cors_origins: str = Field(default="http://localhost:5173")

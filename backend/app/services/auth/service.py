@@ -68,6 +68,8 @@ class RevokeReason:
     LOGOUT = "logout"
     PASSWORD_CHANGE = "password_change"
     REUSE_DETECTED = "reuse_detected"
+    USER_DISABLED = "user_disabled"
+    PASSWORD_RESET = "password_reset"
 
 
 def _revoke(record: RefreshToken, reason: str) -> None:

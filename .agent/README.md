@@ -16,6 +16,7 @@ It defines **what to build, in what order, and the rules to follow**. It is a pl
 | Add a new frontend/backend feature        | "Add feature `X` following `.agent/workflows/add-feature.md`"   |
 | Check a phase is really done              | "Verify phase 05 against `.agent/checklists/phase-done.md`"     |
 | Rehearse the final demo                   | "Walk through `.agent/checklists/demo-acceptance.md`"           |
+| Fix deferred issues                       | "Fix B1 and B2 from `.agent/backlog.md`"                        |
 
 ## Layout
 
@@ -23,6 +24,7 @@ It defines **what to build, in what order, and the rules to follow**. It is a pl
 .agent/
 ├── README.md                      ← you are here (index)
 ├── progress.md                    ← phase status tracker (update after every phase)
+├── backlog.md                     ← known issues deferred for later (B1, B2, …)
 │
 ├── context/
 │   ├── objectives.md              ← POC goal, scope, explicit exclusions

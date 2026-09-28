@@ -7,10 +7,10 @@ import { Link, useNavigate } from 'react-router'
 import { notify } from '@features/notifications'
 import { ApiError } from '@shared/api/http'
 import { Button } from '@shared/ui/button'
+import { FieldError, FormError } from '@shared/ui/form-message'
 import { Label } from '@shared/ui/label'
 
 import { AuthLayout } from '../components/AuthLayout'
-import { FieldError, FormError } from '../components/FormError'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../hooks/useAuth'
 import {

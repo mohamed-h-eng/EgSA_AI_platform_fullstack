@@ -1,6 +1,12 @@
 import { authFeature } from '@features/auth'
+import { chatFeature } from '@features/chat'
 import { dashboardFeature } from '@features/dashboard'
+import { documentsFeature } from '@features/documents'
 import { notificationsFeature } from '@features/notifications'
+import { projectsFeature } from '@features/projects'
+import { settingsFeature } from '@features/settings'
+import { usersFeature } from '@features/users'
+import type { Slots } from '@shared/lib/slots'
 import type { FeatureManifest, NavItem } from '@shared/types/feature'
 
 /**
@@ -9,11 +15,21 @@ import type { FeatureManifest, NavItem } from '@shared/types/feature'
  */
 export const features: FeatureManifest[] = [
   authFeature,
+  chatFeature,
   dashboardFeature,
+  documentsFeature,
   notificationsFeature,
-  // chatFeature, documentsFeature, projectsFeature, usersFeature, settingsFeature
+  projectsFeature,
+  settingsFeature,
+  usersFeature,
 ]
 
 export const navItems: NavItem[] = features
   .flatMap((f) => f.nav ?? [])
   .sort((a, b) => a.order - b.order)
+
+export const slots: Slots = {
+  projectTabs: features
+    .flatMap((f) => f.slots?.projectTabs ?? [])
+    .sort((a, b) => a.order - b.order),
+}

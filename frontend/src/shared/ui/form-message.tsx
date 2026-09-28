@@ -1,6 +1,7 @@
 import { AlertCircle } from 'lucide-react'
 
-export function FormError({ message }: { message: string | null }) {
+/** Form-level error (e.g. from the server), announced to screen readers. */
+export function FormError({ message }: { message: string | null | undefined }) {
   if (!message) return null
   return (
     <div
@@ -13,6 +14,7 @@ export function FormError({ message }: { message: string | null }) {
   )
 }
 
+/** Field-level validation error; link it with aria-describedby={id}. */
 export function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null
   return (

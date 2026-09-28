@@ -24,7 +24,8 @@ def _prehash(password: str) -> bytes:
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(_prehash(password), bcrypt.gensalt()).decode("ascii")
+    rounds = get_settings().bcrypt_rounds
+    return bcrypt.hashpw(_prehash(password), bcrypt.gensalt(rounds=rounds)).decode("ascii")
 
 
 def verify_password(password: str, password_hash: str) -> bool:

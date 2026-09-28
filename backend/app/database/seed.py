@@ -4,6 +4,7 @@ Run: `python -m app.database.seed` (the Docker entrypoint does this after migrat
 """
 
 import logging
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -16,6 +17,9 @@ from app.models.user import User
 from app.permissions.codes import DESCRIPTIONS, PermissionCode
 from app.permissions.matrix import ADMIN, ROLES
 from app.services.auth.providers import normalize_email
+
+if TYPE_CHECKING:
+    from app.storage import StorageService
 
 log = logging.getLogger(__name__)
 
@@ -61,9 +65,17 @@ def seed_admin(db: Session) -> None:
     log.info("Created seed admin %s", email)
 
 
-def seed(db: Session) -> None:
+def seed(db: Session, *, demo: bool = False, storage: "StorageService | None" = None) -> None:
+    from app.services.documents.service import seed_categories
+
     seed_permissions_and_roles(db)
     seed_admin(db)
+    seed_categories(db)
+    if demo:
+        from app.database.seed_demo import seed_demo
+        from app.storage import get_storage
+
+        seed_demo(db, storage or get_storage())
     db.commit()
 
 
@@ -77,8 +89,10 @@ def main() -> None:
         "change-me"
     ):
         raise SystemExit("Refusing to seed: SEED_ADMIN_PASSWORD is still the placeholder value.")
+    if settings.environment == "production" and settings.seed_demo:
+        raise SystemExit("Refusing to seed: SEED_DEMO must be false in production (fake accounts).")
     with SessionLocal() as db:
-        seed(db)
+        seed(db, demo=settings.seed_demo)
     log.info("Seed complete")
 
 

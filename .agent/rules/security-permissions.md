@@ -57,6 +57,7 @@ effective action = global permission  AND  can_access(project)
 - Rate-limit `/auth/login` (simple in-memory limiter is fine for the POC).
 - Uploads: allow-list extensions **and** MIME sniffing (`pdf, docx, txt`), enforce max size, store under a UUID key, and serve with `Content-Disposition: attachment` (or `inline` for PDF view).
 - CORS: only the frontend origin. In Docker, same-origin through Nginx.
-- `OPENROUTER_API_KEY` lives only in backend env. The frontend never receives it.
+- The OpenRouter API key is entered in Admin Settings (D17), stored **encrypted** in `ai_settings`, never returned by any endpoint (only `api_key_set` + a 4-char hint), never written to logs or the audit log, and only used server-side. The frontend never receives it.
+- The backend's outbound HTTPS uses the **OS trust store**, so a TLS-inspecting proxy's CA installed in the image (`backend/certs/`) is honoured.
 - **Network (D1):** the backend is the only component with outbound internet access, and only to `openrouter.ai`. The frontend must not reference any public CDN (fonts, scripts, images).
 - **Soft-deleted rows (D16):** every query for conversations and projects excludes `deleted_at IS NOT NULL`. A soft-deleted resource returns 404.

@@ -3,6 +3,7 @@ import os
 # Tests run against in-memory SQLite unless a test database URL is provided.
 os.environ.setdefault("DATABASE_URL", os.environ.get("TEST_DATABASE_URL", "sqlite+pysqlite://"))
 os.environ.setdefault("JWT_SECRET", "test-secret-with-enough-length-for-hs256")
+os.environ.setdefault("BCRYPT_ROUNDS", "4")  # minimum cost: tests only
 
 from collections.abc import Callable, Iterator  # noqa: E402
 
@@ -17,11 +18,13 @@ import app.models  # noqa: E402, F401
 from app.core.security import hash_password  # noqa: E402
 from app.database.base import Base  # noqa: E402
 from app.database.seed import seed_permissions_and_roles  # noqa: E402
-from app.database.session import get_db  # noqa: E402
+from app.database.session import get_db, get_session_factory  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models.role import Role  # noqa: E402
 from app.models.user import User  # noqa: E402
 from app.services.auth.service import login_limiter  # noqa: E402
+from app.services.documents.service import seed_categories  # noqa: E402
+from app.storage import LocalStorage, get_storage  # noqa: E402
 
 DEFAULT_PASSWORD = "Correct-Horse-42"
 
@@ -41,6 +44,7 @@ def session_factory(db_engine) -> sessionmaker[Session]:
     factory = sessionmaker(bind=db_engine, autoflush=False, expire_on_commit=False)
     with factory() as db:
         seed_permissions_and_roles(db)
+        seed_categories(db)
         db.commit()
     return factory
 
@@ -52,14 +56,21 @@ def db(session_factory) -> Iterator[Session]:
 
 
 @pytest.fixture
-def app(session_factory) -> FastAPI:
+def storage(tmp_path) -> LocalStorage:
+    return LocalStorage(tmp_path / "storage")
+
+
+@pytest.fixture
+def app(session_factory, storage) -> FastAPI:
     application = create_app()
+    application.dependency_overrides[get_storage] = lambda: storage
 
     def _get_db() -> Iterator[Session]:
         with session_factory() as session:
             yield session
 
     application.dependency_overrides[get_db] = _get_db
+    application.dependency_overrides[get_session_factory] = lambda: session_factory
     login_limiter.clear()
     return application
 

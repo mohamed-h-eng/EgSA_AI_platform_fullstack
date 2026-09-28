@@ -79,7 +79,13 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
+        # Keep only JSON-safe keys: `ctx` can hold the raw exception object.
+        errors = [
+            {"loc": list(e.get("loc", ())), "msg": e.get("msg", ""), "type": e.get("type", "")}
+            for e in exc.errors()
+        ]
+        first = errors[0]["msg"].removeprefix("Value error, ") if errors else "Invalid request"
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content=error_body("VALIDATION_ERROR", "Invalid request", {"errors": exc.errors()}),
+            status_code=422,
+            content=error_body("VALIDATION_ERROR", first, {"errors": errors}),
         )

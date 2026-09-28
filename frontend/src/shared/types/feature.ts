@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react'
 import type { RouteObject } from 'react-router'
 
+import type { Slots } from '@shared/lib/slots'
+
 /** Permission codes, e.g. `documents:upload`. Enforced by the backend; the UI only hides actions. */
 export type PermissionCode = `${string}:${string}`
 
@@ -12,6 +14,11 @@ export interface NavItem {
   order: number
   permission?: PermissionCode
   section?: 'main' | 'admin'
+}
+
+/** Put on a route as `handle: { permission }`; the app wraps it in a permission guard. */
+export interface FeatureRouteHandle {
+  permission?: PermissionCode
 }
 
 /**
@@ -27,4 +34,6 @@ export interface FeatureManifest {
   /** Authenticated routes rendered WITHOUT the AppShell (e.g. /change-password). */
   fullscreenRoutes?: RouteObject[]
   nav?: NavItem[]
+  /** UI this feature contributes to other features' extension slots (see shared/lib/slots). */
+  slots?: Partial<Slots>
 }

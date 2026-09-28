@@ -7,12 +7,12 @@ Status values: `pending` · `in-progress` · `blocked` · `done`
 | -- | --------------------------- | ------------------------------------- | -------- | ------- | --------- | ----- |
 | 01 | Project Foundation          | workflows/01-foundation.md            | 2–3 d    | done    | 2026-09-23 | Stack runs via docker compose; health 200 (backend + DB ok); baseline migration applied |
 | 02 | Authentication              | workflows/02-authentication.md        | 2–3 d    | done    | 2026-09-23 | JWT access + rotating httpOnly refresh cookie, forced password change, rate limit, audit; 26 BE + 17 FE tests; verified E2E via nginx |
-| 03 | Users & Permissions         | workflows/03-users-permissions.md     | 3–4 d    | pending |           |       |
-| 04 | Projects                    | workflows/04-projects.md              | 2–3 d    | pending |           |       |
-| 05 | Documents                   | workflows/05-documents.md             | 4–5 d    | pending |           |       |
-| 06 | Chat Backend                | workflows/06-chat-backend.md          | 3–4 d    | pending |           |       |
-| 07 | OpenRouter Integration      | workflows/07-openrouter.md            | 2–3 d    | pending |           |       |
-| 08 | Chat UI                     | workflows/08-chat-ui.md               | 3–4 d    | pending |           |       |
+| 03 | Users & Permissions         | workflows/03-users-permissions.md     | 3–4 d    | done    | 2026-09-23 | User admin (create w/ temp password, edit, role, reset, enable/disable), guardrails, route-auth audit test; 73 BE + 25 FE tests; verified E2E via nginx |
+| 04 | Projects                    | workflows/04-projects.md              | 2–3 d    | done    | 2026-09-23 | Projects + membership, visibility in SQL (404 for non-members), lead/admin rules, soft delete, demo seed; 92 BE + 31 FE tests; verified E2E with demo accounts |
+| 05 | Documents                   | workflows/05-documents.md             | 4–5 d    | done    | 2026-09-23 | Upload (type+content+size validated before storage), download/view, edit, delete, search/filters, per-project codes, Documents tab via slot, demo files; 129 BE + 39 FE tests; verified E2E via nginx |
+| 06 | Chat Backend                | workflows/06-chat-backend.md          | 3–4 d    | done    | 2026-09-23 | Conversations/messages, owner-only, project-scoped visibility, placeholder responder behind `ChatResponder`, error+retry, Arabic-safe titles, demo chats; 154 BE + 39 FE tests; verified E2E via nginx |
+| 07 | OpenRouter Integration      | workflows/07-openrouter.md            | 2–3 d    | done    | 2026-09-23 | Admin-entered OpenRouter connection (encrypted key), model allow-list, guardrailed prompts, SSE streaming + fallback, usage/audit per request; 190 BE + 43 FE tests; live-verified against OpenRouter (invalid-key paths, catalog); a successful live answer needs a real key |
+| 08 | Chat UI                     | workflows/08-chat-ui.md               | 3–4 d    | done    | 2026-09-28 | Two-pane chat (history grouped by date, search, rename/delete), SSE streaming with Stop, error + Retry, model picker, markdown + code highlight, `dir="auto"` Arabic, D2 warning, not-configured state; 190 BE + 52 FE tests; stream verified E2E via nginx (visual browser check pending: extension not connected) |
 | 09 | Dashboard, Settings, Polish | workflows/09-dashboard-polish.md      | 2–3 d    | pending |           |       |
 | 10 | Testing & Demo Readiness    | workflows/10-testing.md               | 3–5 d    | pending |           |       |
 
@@ -32,4 +32,34 @@ Record anything that differs from `.agent/*` or `plan.md` here.
 | 2026-09-23 | 02 | Refresh tokens are opaque random strings (SHA-256 stored), not JWTs; rotation with reuse detection (a rotated token replayed after a 10 s grace window revokes all the user's sessions) | Revocable server-side; grace window + Web Locks avoid false alarms from multiple tabs |
 | 2026-09-23 | 02 | Passwords are SHA-256 pre-hashed before bcrypt | bcrypt ignores bytes after 72; Arabic passphrases exceed that quickly |
 | 2026-09-23 | 02 | `FeatureManifest.fullscreenRoutes` added (authenticated routes without the AppShell, e.g. /change-password) | Needed for the forced password change screen |
+| 2026-09-23 | 03 | Users page + nav gated by `users:create` (not `users:read` as the workflow said) | Engineers/leads hold users:read for phase 04 member pickers but must not see user admin |
+| 2026-09-23 | 03 | Routes declare `handle: { permission }`; `app/router.tsx` wraps them in RequirePermission | Features stay free of `app/` imports |
+| 2026-09-23 | 03 | Route-auth test reads the OpenAPI schema instead of `app.routes` | FastAPI 0.141 wraps included routers in a private `_IncludedRouter`; OpenAPI is the stable public view |
+| 2026-09-23 | 03 | One global role per user in the UI/API (`PUT /users/{id}/role`), though `user_roles` allows many | Matches plan's "Change role"; table stays future-proof |
+| 2026-09-23 | 04 | Project detail returns `abilities` (can_edit / can_manage_members / can_delete) computed server-side | UI never re-implements lead/admin rules |
+| 2026-09-23 | 04 | A project must always keep ≥1 lead (`LAST_PROJECT_LEAD`); the creator becomes lead | Every project stays manageable |
+| 2026-09-23 | 04 | Project codes stay reserved after soft delete (unique across deleted rows) | Keeps audit trail unambiguous (D16) |
+| 2026-09-23 | 04 | Demo users share `SEED_DEMO_PASSWORD`; demo seed refuses to run in production | D12 without shipping fake accounts to prod |
+| 2026-09-23 | 04 | Documents/Activity tabs on project detail deferred to phases 05/09 | Avoid placeholder tabs with no content |
+| 2026-09-23 | 05 | Categories at `/documents/categories` (not `/document-categories`) + `/documents/upload-config` | Keeps the documents API under one prefix; client pre-validation uses server limits |
+| 2026-09-23 | 05 | Uploads are validated on a spooled temp copy (extension + magic bytes/zip structure/UTF-8 + size) BEFORE `StorageService.save` | Storage never holds rejected files; future MinIO gets the same guarantee |
+| 2026-09-23 | 05 | Document abilities (`can_edit`/`can_delete`) computed server-side; uploader may edit/delete own docs while still a project contributor; leads manage all in their project | Same pattern as project abilities (phase 04) |
+| 2026-09-23 | 05 | Frontend **extension slots** (`shared/lib/slots.ts`): documents contributes the project Documents tab without projects importing documents | Avoids a projects↔documents feature cycle (ADR-01) |
+| 2026-09-23 | 05 | View/download fetch the file as a blob with the bearer token (`httpBlob`); uploads use XHR (`httpUpload`) for progress | Plain links can't carry the in-memory token (ADR-03); fetch has no upload progress |
+| 2026-09-23 | 05 | `BCRYPT_ROUNDS` setting (default 12); tests use 4 | Backend suite 2m43s → 18s, production cost unchanged |
+| 2026-09-23 | 06 | AI access goes through a `ChatResponder` protocol; phase 06 ships an honest `PlaceholderResponder`, phase 07 swaps in OpenRouter | Chat history works with no AI (plan §40); tests use a scripted responder |
+| 2026-09-23 | 06 | Messages carry an explicit `position` (unique per conversation) | Timestamps can collide; transcript order must be exact |
+| 2026-09-23 | 06 | User message is committed BEFORE the AI call; AI failures are saved as `status=error` assistant messages (201), retried in place via `POST /conversations/{id}/retry` | Never lose what the user typed; Retry reuses the same transcript slot |
+| 2026-09-23 | 06 | Project-linked conversations are listed only while the owner can still access the project | Covers project soft delete (D16) and removal from a project |
+| 2026-09-23 | 06 | Failed replies are excluded from the history sent to the model | Error text must not pollute AI context |
+| 2026-09-23 | 07 | **D17**: OpenRouter connection entered in Admin Settings (encrypted in DB), not env vars; `.env` OpenRouter vars removed | User request; keeps setup in the UI, key still server-only |
+| 2026-09-23 | 07 | Guardrails always appended to the admin's system prompt (no claimed access to EgSA documents; reply in the user's language) | Plan §24/§25 + D3 can't be edited away |
+| 2026-09-23 | 07 | "Test connection" validates the key via OpenRouter `/key`; `/models` is public and can't prove a key works | Found live: listing models succeeded with an invalid key |
+| 2026-09-23 | 07 | httpx uses the OS trust store (`ssl.create_default_context()`) | TLS-inspecting proxies/AV (D1) broke certifi-only verification |
+| 2026-09-23 | 07 | Streaming: user msg + empty assistant row saved before the stream; the SSE generator uses its own DB session and always persists the final state (client disconnect → partial text + `STREAM_ABORTED`) | Request-scoped session ends before the stream; transcript must stay truthful |
+| 2026-09-23 | 07 | Model chosen per message must be in the admin allow-list (400 `MODEL_NOT_ALLOWED`, nothing saved) | Plan §20 |
+| 2026-09-28 | 08 | Streaming state lives in the React Query message cache (`useChatStream`): start/delta/done update it, Stop aborts then re-syncs with the server copy | One source of truth; no duplicated local transcript |
+| 2026-09-28 | 08 | If the stream can't be opened (network/5xx), the UI falls back to the non-streaming endpoint; 4xx errors are shown as-is | Proxies that break SSE still get answers; validation errors must not double-send |
+| 2026-09-28 | 08 | A new chat is created only when its first message is sent | No empty conversations in history |
+| 2026-09-28 | 08 | `readSSE` decodes with `TextDecoder({stream})` instead of `TextDecoderStream` | Keeps Arabic multi-byte chars intact across chunks; works in jsdom and TS 6 typings |
 | 2026-09-23 | 01 | Health endpoint returns 503 `{status: degraded}` when the DB is down (instead of 200) | Lets Docker/monitoring detect DB loss |

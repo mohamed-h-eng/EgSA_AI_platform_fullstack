@@ -28,8 +28,33 @@ cp .env.example .env        # then replace every "change-me" value
 docker compose up --build   # http://localhost  (HTTP_PORT in .env)
 ```
 
-On start, the backend runs `alembic upgrade head`. The dashboard shows live **Backend API** and
+On start, the backend runs `alembic upgrade head` and seeds roles, permissions and the first
+admin (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, used only when that admin is first created). The dashboard shows live **Backend API** and
 **Database** status. The API docs are at `http://localhost/api/v1/docs`.
+
+### Connecting the AI (OpenRouter)
+
+The OpenRouter connection is configured **in the app**, not in `.env` (decision D17):
+
+1. Sign in as an admin → **Admin Settings → AI model**.
+2. Paste your OpenRouter API key (openrouter.ai → Keys) and click **Test connection**.
+3. **Save**, then pick the allowed free models and the default one, and **Save** again.
+
+The key is stored encrypted and is never shown again or sent to browsers. Only the backend
+needs outbound HTTPS to `openrouter.ai`.
+
+### Demo data (`SEED_DEMO=true`, decision D12)
+
+Fake accounts and projects for demonstrations, all sharing `SEED_DEMO_PASSWORD`:
+
+| Account                  | Global role  | Projects                              |
+| ------------------------ | ------------ | ------------------------------------- |
+| `ahmed.lead@egsa.local`  | Project Lead | NEXSAT-1 (lead), EGYPTSAT-2 (lead)    |
+| `mohamed.eng@egsa.local` | Engineer     | NEXSAT-1                              |
+| `sara.viewer@egsa.local` | Viewer       | NEXSAT-1 (read-only)                  |
+| `hussein.sar@egsa.local` | Project Lead | SAR only (can't see the others)       |
+
+The seed refuses to run with `ENVIRONMENT=production`.
 
 ## Run locally without Docker (development)
 

@@ -76,7 +76,11 @@ features/<feature>/
 export interface FeatureManifest {
   id: string;                          // 'documents'
   routes: RouteObject[];               // lazy page routes, mounted inside AppShell
-  publicRoutes?: RouteObject[];        // e.g. /login (outside AppShell)
+                                       //   add `handle: { permission: 'users:create' }` to a route
+                                       //   and the app wraps it in <RequirePermission>
+  publicRoutes?: RouteObject[];        // e.g. /login (outside AppShell, no auth)
+  fullscreenRoutes?: RouteObject[];    // authenticated but no AppShell, e.g. /change-password
+  slots?: Partial<Slots>;              // UI contributed to OTHER features (see "Extension slots")
   nav?: {
     label: string; path: string; icon: LucideIcon;
     order: number; permission?: PermissionCode; section?: 'main' | 'admin';
@@ -92,6 +96,16 @@ export const features = [authFeature, dashboardFeature, chatFeature, documentsFe
 ```
 
 The router and sidebar are generated from this registry. **To add a feature, create the folder and add one line here.**
+
+## Extension slots (cross-feature UI without cycles)
+
+When feature A must show UI owned by feature B, but B already depends on A (e.g. documents uses
+`ProjectSelect`, and projects must show a Documents tab), **don't import B from A**. Instead:
+
+1. Add a slot type to `shared/lib/slots.ts` (e.g. `projectTabs: ProjectTabSlot[]`).
+2. Feature B declares its contribution in `manifest.slots`.
+3. `app/feature-registry.ts` collects all contributions and `App` provides them via `<SlotsProvider>`.
+4. Feature A renders them with `useSlot('projectTabs')`, knowing nothing about B.
 
 ## Dependency rules (enforce with ESLint `import/no-restricted-paths` or `eslint-plugin-boundaries`)
 
@@ -129,9 +143,9 @@ No circular dependencies between features. If two features need the same thing, 
 | auth            | `/login`                                   | `/auth`                               |
 | dashboard       | `/`                                        | `/dashboard/summary`                  |
 | chat            | `/chat`, `/chat/:conversationId`           | `/conversations`, `/ai/models`        |
-| documents       | `/documents`, `/documents/:id`             | `/documents`                          |
+| documents       | `/documents`, `/documents/:id`; + project tab via slot | `/documents` (+ `/categories`, `/upload-config`) |
 | projects        | `/projects`, `/projects/:id`               | `/projects`, `/projects/{id}/members` |
-| users           | `/admin/users`                             | `/users`, `/roles`                    |
+| users           | `/admin/users` (gated by `users:create`)   | `/users`, `/roles`                    |
 | settings        | `/settings`, `/admin/settings`             | `/me`, `/admin/ai/config`, `/admin/settings` |
 | notifications   | (global toaster)                           | none (client-side)                    |
 | audit           | `/admin/audit` (optional)                  | `/admin/audit-logs`                   |
